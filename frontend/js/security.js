@@ -73,6 +73,15 @@ async function init() {
               <span id="tfa-status-text" class="ml-4 text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 w-16">Inactive</span>
             </label>
           </div>
+          <div class="mt-8 max-w-sm">
+            <label for="tfa-password" class="block text-[9px] font-bold tracking-[0.2em] text-slate-400 uppercase mb-3">Current password to change 2FA</label>
+            <input id="tfa-password" type="password" autocomplete="current-password" class="w-full border-b border-slate-300 py-3 bg-transparent text-sm focus:outline-none focus:border-slate-900">
+          </div>
+          <div id="tfa-code-panel" class="hidden mt-6 max-w-sm">
+            <label for="tfa-code" class="block text-[9px] font-bold tracking-[0.2em] text-slate-400 uppercase mb-3">Email verification code</label>
+            <input id="tfa-code" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" class="w-full border-b border-slate-300 py-3 bg-transparent text-sm focus:outline-none focus:border-slate-900">
+            <button id="tfa-verify" type="button" class="lumiere-btn mt-4">Verify & enable</button>
+          </div>
         </div>
 
         <!-- Section: Device History -->
@@ -128,7 +137,7 @@ async function init() {
   const tfaStatusText = document.getElementById('tfa-status-text');
 
   // Load existing preference from user database
-  const is2faActive = user.twoFactorEnabled !== false; 
+  const is2faActive = Boolean(user.twoFactorEnabled);
   tfaToggle.checked = is2faActive;
   
   function updateToggleText(isActive) {
@@ -141,25 +150,53 @@ async function init() {
 
   tfaToggle.addEventListener('change', async (e) => {
     const isActive = e.target.checked;
+    const passwordInput = document.getElementById('tfa-password');
+    const password = passwordInput.value;
+    if (!password) {
+      e.target.checked = !isActive;
+      toast('Enter your current password to change 2FA.', 'error');
+      return;
+    }
     tfaToggle.disabled = true; // Lock the toggle while saving to prevent spam
 
     try {
-      await api('/api/auth/update-user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          twoFactorEnabled: isActive
-        })
-      });
-      
-      updateToggleText(isActive);
-      toast(isActive ? 'Two-Factor Authentication enabled.' : 'Two-Factor Authentication disabled.', 'success');
+      if (isActive) {
+        await api('/api/auth/two-factor/enable', { method: 'POST', body: JSON.stringify({ password }) });
+        await api('/api/auth/two-factor/send-otp', { method: 'POST', body: '{}' });
+        e.target.checked = false;
+        document.getElementById('tfa-code-panel').classList.remove('hidden');
+        toast('Enter the code sent to your email to enable 2FA.', 'success');
+      } else {
+        await api('/api/auth/two-factor/disable', { method: 'POST', body: JSON.stringify({ password }) });
+        updateToggleText(false);
+        toast('Two-Factor Authentication disabled.', 'success');
+      }
     } catch (err) {
-      // If the API fails, flip the toggle back visually
-      e.target.checked = !isActive; 
-      toast('Failed to update authentication settings.', 'error');
+      e.target.checked = !isActive;
+      toast(err.message, 'error');
     } finally {
       tfaToggle.disabled = false;
+      passwordInput.value = '';
+    }
+  });
+
+  document.getElementById('tfa-verify').addEventListener('click', async () => {
+    const codeInput = document.getElementById('tfa-code');
+    const code = codeInput.value.trim();
+    if (!/^\d{6}$/.test(code)) return toast('Enter the six-digit code.', 'error');
+    const button = document.getElementById('tfa-verify');
+    button.disabled = true;
+    try {
+      await api('/api/auth/two-factor/verify-otp', { method: 'POST', body: JSON.stringify({ code }) });
+      tfaToggle.checked = true;
+      updateToggleText(true);
+      document.getElementById('tfa-code-panel').classList.add('hidden');
+      codeInput.value = '';
+      toast('Two-Factor Authentication enabled.', 'success');
+    } catch (err) {
+      toast(err.message, 'error');
+    } finally {
+      button.disabled = false;
     }
   });
 }

@@ -1,0 +1,4 @@
+ALTER TABLE orders ADD COLUMN verification_pin TEXT;
+ALTER TABLE orders ADD COLUMN delivery_method TEXT NOT NULL DEFAULT 'delivery';
+ALTER TABLE orders ADD COLUMN state TEXT NOT NULL DEFAULT '';
+ALTER TABLE orders ADD COLUMN phone TEXT NOT NULL DEFAULT '';

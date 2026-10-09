@@ -36,6 +36,10 @@ orderRoutes.post('/', async (c) => {
     city?: string
     postalCode?: string
     country?: string
+    state?: string
+    phone?: string
+    countryCode?: string
+    deliveryMethod?: string
   }>(c)
 
   const items = Array.isArray(body.items) ? body.items.slice(0, 20) : []
@@ -71,7 +75,10 @@ orderRoutes.post('/', async (c) => {
     return { ...item, product }
   })
 
-  const shipping = subtotal >= 8000 ? 0 : 799
+  const deliveryMethod = body.deliveryMethod === 'pickup' ? 'pickup' : 'delivery'
+  const state = safeText(body.state, 80)
+  const eastMalaysia = ['Sabah', 'Sarawak', 'W.P. Labuan'].includes(state)
+  const shipping = deliveryMethod === 'pickup' ? 0 : (subtotal >= 8000 ? 0 : 799) + (eastMalaysia ? 3000 : 0)
   const tax = Math.round(subtotal * 0.06)
   const total = subtotal + shipping + tax
 
@@ -81,6 +88,7 @@ orderRoutes.post('/', async (c) => {
   const city = safeText(body.city, 80)
   const postalCode = safeText(body.postalCode, 20)
   const country = safeText(body.country, 60)
+  const phone = `${safeText(body.countryCode, 8)}${safeText(body.phone, 30)}`
 
   if (!fullName || !address1 || !city || !postalCode || !country) {
     throw new HttpError(400, 'Complete the shipping address.')
@@ -98,8 +106,9 @@ orderRoutes.post('/', async (c) => {
       .prepare(
         `INSERT INTO orders
          (id, user_id, status, subtotal_cents, shipping_cents, tax_cents, total_cents,
-          shipping_name, address1, address2, city, postal_code, country, idempotency_key, created_at, verification_pin)
-         VALUES (?, ?, 'confirmed', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          shipping_name, address1, address2, city, postal_code, country, idempotency_key, created_at, verification_pin,
+          delivery_method, state, phone)
+         VALUES (?, ?, 'confirmed', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
       .bind(
         orderId,
@@ -116,7 +125,10 @@ orderRoutes.post('/', async (c) => {
         country,
         idempotencyKey,
         now,
-        verificationPin
+        verificationPin,
+        deliveryMethod,
+        state,
+        phone
       )
   ]
 
@@ -168,7 +180,7 @@ orderRoutes.get('/all', async (c) => {
   const result = await c.env.DB
     .prepare(
       `SELECT orders.id, orders.status, orders.tracking_number, orders.subtotal_cents, orders.shipping_cents, orders.tax_cents, orders.total_cents,
-              orders.shipping_name, user.email, orders.created_at, orders.verification_pin
+              orders.shipping_name, orders.delivery_method, orders.state, orders.phone, user.email, orders.created_at, orders.verification_pin
        FROM orders 
        LEFT JOIN user ON orders.user_id = user.id
        ORDER BY orders.created_at DESC LIMIT 100`
@@ -183,7 +195,7 @@ orderRoutes.get('/', async (c) => {
 
   const result = await c.env.DB
     .prepare(
-      `SELECT id, status, tracking_number, subtotal_cents, shipping_cents, tax_cents, total_cents, created_at, verification_pin
+      `SELECT id, status, tracking_number, subtotal_cents, shipping_cents, tax_cents, total_cents, delivery_method, created_at, verification_pin
        FROM orders WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`
     )
     .bind(user.id)
@@ -201,7 +213,7 @@ orderRoutes.get('/:id', async (c) => {
     order = await c.env.DB
       .prepare(
         `SELECT id, status, tracking_number, subtotal_cents, shipping_cents, tax_cents, total_cents,
-                shipping_name, address1, address2, city, postal_code, country, created_at, verification_pin
+                shipping_name, address1, address2, city, postal_code, country, delivery_method, state, phone, created_at, verification_pin
          FROM orders WHERE id = ?`
       )
       .bind(orderId)
@@ -210,7 +222,7 @@ orderRoutes.get('/:id', async (c) => {
     order = await c.env.DB
       .prepare(
         `SELECT id, status, tracking_number, subtotal_cents, shipping_cents, tax_cents, total_cents,
-                shipping_name, address1, address2, city, postal_code, country, created_at, verification_pin
+                shipping_name, address1, address2, city, postal_code, country, delivery_method, state, phone, created_at, verification_pin
          FROM orders WHERE id = ? AND user_id = ?`
       )
       .bind(orderId, user.id)

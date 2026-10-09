@@ -103,7 +103,7 @@ async function init() {
     stateSelect.addEventListener('change', renderSummary)
   }
 
-  // Form Submission Logic - Routes dynamically based on cart subtotal
+  // Form Submission Logic - Routes to the shared demo confirmation screen
   const form = document.getElementById('checkout-form')
   form.addEventListener('submit', (event) => {
     event.preventDefault()
@@ -111,15 +111,16 @@ async function init() {
     const payload = Object.fromEntries(new FormData(form).entries())
     payload.items = getCart().map((item) => ({ productId: item.productId, quantity: item.quantity }))
     payload.isPickup = getDeliveryMethod() === 'pickup'
+    payload.idempotencyKey = crypto.randomUUID()
     
     sessionStorage.setItem('lumiere_checkout', JSON.stringify(payload))
     
     const subtotal = cartSubtotal()
     if (subtotal > 500000) {
-      // Over RM 5,000 -> Redirect to Credit/Debit Card & Online Banking Page
+      // Keep existing route for bookmarked high-value checkouts.
       window.location.href = '/card-payment/'
     } else {
-      // Under RM 5,000 -> Redirect to Touch 'n Go E-Wallet Page
+      // Both routes render the same demo order review.
       window.location.href = '/payment/'
     }
   })

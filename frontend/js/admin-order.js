@@ -115,6 +115,7 @@ function renderOrderInterface(root, order, items, allProducts) {
   // --- BULLETPROOF DETECTION & OVERRIDE ---
   const localPickupKey = `lumiere_pickup_${order.id}`;
   const isPickupDefault = 
+    order.delivery_method === 'pickup' ||
     localStorage.getItem(localPickupKey) === 'true' || 
     ['preparing', 'ready', 'collected'].includes(currentStatus) ||
     String(order.fulfillment).toLowerCase().includes('pick');

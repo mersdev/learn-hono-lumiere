@@ -4,6 +4,8 @@ import { renderShell, setBusy, toast } from './ui.js';
 // 1. Determine the current auth state
 const state = document.body.dataset.authState || new URLSearchParams(location.search).get('state') || 'signin';
 const root = document.getElementById('auth-root');
+const requestedNext = new URLSearchParams(location.search).get('next');
+const afterLogin = requestedNext && requestedNext.startsWith('/') && !requestedNext.startsWith('//') ? requestedNext : '/';
 
 // 2. Reusable UI Components
 const formHeader = (title, subtitle) => `
@@ -31,10 +33,27 @@ const passwordInput = `
 await renderShell();
 
 if (state === 'verified') {
-  root.innerHTML = formHeader('Email verified', 'Success') + '<p class="mb-6 text-slate-500 text-center text-sm">Your LUMIÈRE account is ready.</p><a class="block w-full lumiere-btn text-center" href="/login/">Log In</a>';
+  root.innerHTML = new URLSearchParams(location.search).has('error')
+    ? formHeader('Verification failed', 'Expired link') + '<p class="mb-6 text-slate-500 text-center text-sm">This link is invalid or expired. Request a new verification email.</p><a class="block w-full lumiere-btn text-center" href="/resend-verification/">Resend verification</a>'
+    : formHeader('Email verified', 'Success') + '<p class="mb-6 text-slate-500 text-center text-sm">Your LUMIÈRE account is ready.</p><a class="block w-full lumiere-btn text-center" href="/login/">Log In</a>';
 }
 else if (state === 'sent') {
   root.innerHTML = formHeader('Check your inbox', 'Verification') + '<p class="mb-6 text-slate-500 text-center text-sm">We sent a verification link. Once confirmed, return here.</p><a class="block w-full lumiere-btn text-center" href="/login/">Log In</a>';
+}
+else if (state === 'resend') {
+  root.innerHTML = formHeader('Resend verification', 'Account') + `
+    <form id="auth-form" class="text-left">${emailInput}<button type="submit" class="w-full lumiere-btn">Send verification link</button></form>`;
+}
+else if (state === 'reset') {
+  const token = new URLSearchParams(location.search).get('token');
+  root.innerHTML = token
+    ? formHeader('Choose a new password', 'Recovery') + `
+      <form id="auth-form" class="text-left">
+        ${passwordInput}
+        <div class="mb-6"><label class="block text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase mb-2">Confirm password</label><input name="confirmPassword" type="password" required minlength="8" class="w-full border border-slate-200 p-3 text-sm focus:border-slate-900"></div>
+        <button type="submit" class="w-full lumiere-btn">Update password</button>
+      </form>`
+    : formHeader('Reset link invalid', 'Recovery') + '<p class="mb-6 text-slate-500 text-center text-sm">Request a new password reset link.</p><a class="block w-full lumiere-btn text-center" href="/forgot-password/">Request reset</a>';
 }
 else if (state === 'signup') {
   root.innerHTML = formHeader('Create Account', 'Welcome') + `
@@ -84,12 +103,21 @@ if (formElement) {
     const data = Object.fromEntries(new FormData(event.currentTarget));
 
     try {
-      if (state === 'signup') {
-        await api('/api/auth/sign-up/email', { method: 'POST', body: JSON.stringify({ ...data, callbackURL: '/verify/' }) });
+      if (state === 'reset') {
+        if (data.password !== data.confirmPassword) throw new Error('Passwords do not match.');
+        await api('/api/auth/reset-password', { method: 'POST', body: JSON.stringify({ token: new URLSearchParams(location.search).get('token'), newPassword: data.password }) });
+        root.innerHTML = formHeader('Password updated', 'Success') + '<a class="block w-full lumiere-btn text-center" href="/login/">Log In</a>';
+      }
+      else if (state === 'resend') {
+        await api('/api/auth/send-verification-email', { method: 'POST', body: JSON.stringify({ email: data.email, callbackURL: new URL('/verify/', location.origin).href }) });
+        root.innerHTML = formHeader('Check your inbox', 'Verification') + '<p class="text-slate-500 text-center text-sm">If that address has an account, a verification link is on its way.</p>';
+      }
+      else if (state === 'signup') {
+        await api('/api/auth/sign-up/email', { method: 'POST', body: JSON.stringify({ ...data, callbackURL: new URL('/verify/', location.origin).href }) });
         window.location.href = '/verification/';
       }
       else if (state === 'forgot') {
-        await api('/api/auth/request-password-reset', { method: 'POST', body: JSON.stringify({ email: data.email, redirectTo: '/reset-password/' }) });
+        await api('/api/auth/request-password-reset', { method: 'POST', body: JSON.stringify({ email: data.email, redirectTo: new URL('/reset-password/', location.origin).href }) });
         root.innerHTML = formHeader('Check your inbox', 'Recovery') + '<p class="text-slate-500 text-center text-sm">If that address has an account, a reset link is on its way.</p>';
       }
       else {
@@ -172,7 +200,7 @@ if (formElement) {
                 })
               });
               
-              window.location.replace(userEmail === 'lumiere.csproject@gmail.com' ? '/admin/' : '/');
+              window.location.replace(userEmail === 'lumiere.csproject@gmail.com' ? '/admin/' : afterLogin);
             } catch (error) {
               toast(error.message, 'error');
               setBusy(otpButton, false);
@@ -231,7 +259,7 @@ if (formElement) {
                   })
                 });
 
-                window.location.replace('/');
+                window.location.replace(afterLogin);
               } catch (error) {
                 toast('Invalid setup code: ' + error.message, 'error');
                 setBusy(otpButton, false);

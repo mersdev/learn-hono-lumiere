@@ -2,48 +2,6 @@ import { api, getCurrentUser } from './api.js'
 import { imageForCartItem } from './product-images.js'
 import { escapeHtml, money, renderShell } from './ui.js'
 
-// Simple pure-JS SVG QR code generator (Zero dependencies)
-function generateSVGQR(text) {
-  let hash = 0;
-  for (let i = 0; i < text.length; i++) {
-    hash = ((hash << 5) - hash) + text.charCodeAt(i);
-    hash |= 0;
-  }
-  
-  const size = 21; 
-  let rects = '';
-  
-  const drawFinder = (x, y) => {
-    let svg = '';
-    for (let r = 0; r < 7; r++) {
-      for (let c = 0; c < 7; c++) {
-        if (r === 0 || r === 6 || c === 0 || c === 6 || (r >= 2 && r <= 4 && c >= 2 && c <= 4)) {
-          svg += `<rect x="${x + c}" y="${y + r}" width="1" height="1" fill="#0f172a"/>`;
-        }
-      }
-    }
-    return svg;
-  };
-
-  rects += drawFinder(0, 0);
-  rects += drawFinder(14, 0);
-  rects += drawFinder(0, 14);
-
-  let seed = Math.abs(hash);
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
-      if ((r < 8 && c < 8) || (r < 8 && c > 12) || (r > 12 && c < 8)) continue;
-      
-      seed = (seed * 9301 + 49297) % 233280;
-      if (seed / 233280 > 0.45) {
-        rects += `<rect x="${c}" y="${r}" width="1" height="1" fill="#0f172a"/>`;
-      }
-    }
-  }
-
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" class="w-full h-full shape-rendering-crispEdges">${rects}</svg>`;
-}
-
 async function init() {
   await renderShell();
   
@@ -84,7 +42,7 @@ async function init() {
     const uuid = order.uuid || id; 
 
     const localPickupKey = `lumiere_pickup_${displayOrderId}`;
-    const isPickup = order.isPickup === true || order.isPickup === 'true' || order.fulfillment === 'pickup' || order.fulfillment === 'Boutique Pick-up' || order.deliveryMethod === 'pickup' || localStorage.getItem(localPickupKey) === 'true';
+    const isPickup = order.delivery_method === 'pickup' || order.isPickup === true || order.isPickup === 'true' || order.fulfillment === 'pickup' || order.fulfillment === 'Boutique Pick-up' || order.deliveryMethod === 'pickup' || localStorage.getItem(localPickupKey) === 'true';
 
     const itemsList = items.length ? items.map(item => {
        const name = item.name || item.productName || item.product_name || (item.product && item.product.name) || 'Luxury Piece';
@@ -129,38 +87,24 @@ async function init() {
     }).join('') : '<p class="text-slate-500 py-10 text-base font-serif">No items found.</p>';
 
     let extraSection = '';
-    let displayIdForQR = 'N/A';
-    let pin = '000000';
-
     if (isPickup) {
-        displayIdForQR = displayOrderId.split('-')[0].toUpperCase();
-        const rawPin = order.verification_pin || '353116'; 
-        pin = String(rawPin).split('').join(' ');
+        const displayId = displayOrderId.split('-')[0].toUpperCase();
+        const pin = order.verification_pin ? String(order.verification_pin).split('').join(' ') : 'Unavailable';
+        const ready = ['ready', 'collected'].includes(String(order.status).toLowerCase());
 
         extraSection = `
           <div class="mt-16 text-center">
-            <p class="text-base text-slate-500 font-serif mb-10">Order <strong class="text-slate-900">#${escapeHtml(displayIdForQR)}</strong> is ready for collection at <strong class="text-slate-900">Pavilion KL Boutique</strong>.</p>
+            <p class="text-base text-slate-500 font-serif mb-10">Order <strong class="text-slate-900">#${escapeHtml(displayId)}</strong> is ${ready ? 'ready for collection' : 'being prepared for collection'} at <strong class="text-slate-900">Pavilion KL Boutique</strong>.</p>
             
             <div class="bg-slate-50 p-12 max-w-md mx-auto mb-10 border border-slate-200">
                <p class="text-[10px] font-bold tracking-[0.2em] text-slate-900 uppercase mb-8">Collection Protocol</p>
                
-               <div class="w-56 h-56 mx-auto bg-white p-4 mb-6 transition-opacity duration-300 border border-slate-200">
-                   <div id="qr-container" class="w-full h-full flex items-center justify-center">
-                      ${generateSVGQR(displayIdForQR + rawPin)}
-                   </div>
-               </div>
-               
-               <button id="refresh-qr-btn" class="text-[10px] font-bold tracking-[0.2em] text-slate-500 hover:text-slate-900 uppercase mb-10 flex items-center justify-center w-full gap-3 transition-all">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                  Refresh QR Code
-               </button>
-               
                <p class="text-[10px] font-bold tracking-[0.2em] text-slate-500 uppercase mb-3">Verification PIN</p>
-               <p class="text-4xl font-mono font-bold tracking-[0.3em] text-slate-900">${pin}</p>
+               <p class="text-4xl font-mono font-bold tracking-[0.3em] text-slate-900">${escapeHtml(pin)}</p>
             </div>
             
             <p class="text-[10px] text-slate-500 max-w-sm mx-auto leading-relaxed mb-10">
-               Please present this code to the boutique staff. The staff will scan this code and verify your PIN to match your identity against the physical item's serial number before release.
+               Present your order number and PIN to boutique staff once your order is ready.
             </p>
             
             <button class="border border-slate-900 text-slate-900 text-[10px] font-bold tracking-[0.2em] uppercase px-14 py-5 hover:bg-slate-900 hover:text-white transition-colors w-full max-w-sm mx-auto" onclick="window.print()">
@@ -194,7 +138,7 @@ async function init() {
             <h2 class="text-3xl font-serif text-slate-900">Total</h2>
             <div class="text-right">
                <p class="text-3xl font-bold lumiere-gold tracking-wide mb-3">${money(amount)}</p>
-               ${isPickup ? '<span class="inline-block px-4 py-1.5 bg-[#f0fdf4] text-[#16a34a] border border-[#bbf7d0] text-[10px] font-bold tracking-[0.1em] uppercase mt-1">Ready for Pickup</span>' : ''}
+               ${isPickup ? '<span class="inline-block px-4 py-1.5 bg-[#f0fdf4] text-[#16a34a] border border-[#bbf7d0] text-[10px] font-bold tracking-[0.1em] uppercase mt-1">Boutique pickup</span>' : ''}
             </div>
          </div>
          
@@ -202,25 +146,6 @@ async function init() {
       </div>
     `;
 
-    if (isPickup) {
-        const refreshBtn = document.getElementById('refresh-qr-btn');
-        const qrContainer = document.getElementById('qr-container');
-        
-        if (refreshBtn && qrContainer) {
-            refreshBtn.addEventListener('click', () => {
-                refreshBtn.classList.add('opacity-50', 'pointer-events-none');
-                qrContainer.parentElement.classList.add('opacity-20');
-                
-                setTimeout(() => {
-                    const randomSalt = Math.random().toString();
-                    const rawPin = order.verification_pin || '353116';
-                    qrContainer.innerHTML = generateSVGQR(displayIdForQR + rawPin + randomSalt);
-                    qrContainer.parentElement.classList.remove('opacity-20');
-                    refreshBtn.classList.remove('opacity-50', 'pointer-events-none');
-                }, 200);
-            });
-        }
-    }
     // --- PRESENTATION BRIDGE: Save order to account history ---
     try {
        let history = JSON.parse(localStorage.getItem('lumiere_order_history') || '[]');

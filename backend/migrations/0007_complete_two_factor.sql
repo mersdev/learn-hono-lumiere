@@ -1,0 +1,3 @@
+ALTER TABLE twoFactor ADD COLUMN verified INTEGER DEFAULT 1;
+ALTER TABLE twoFactor ADD COLUMN failedVerificationCount INTEGER DEFAULT 0;
+ALTER TABLE twoFactor ADD COLUMN lockedUntil INTEGER;

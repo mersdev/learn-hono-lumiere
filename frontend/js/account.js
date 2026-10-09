@@ -50,6 +50,7 @@ async function init() {
       
       const localPickupKey = `lumiere_pickup_${rawId}`;
       const isPickup = 
+          order.delivery_method === 'pickup' ||
           localStorage.getItem(localPickupKey) === 'true' || 
           ['PREPARING', 'READY', 'COLLECTED'].includes(statusUpper) ||
           (order.fulfillment && String(order.fulfillment).toLowerCase().includes('pick'));

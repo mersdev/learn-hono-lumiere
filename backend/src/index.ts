@@ -30,6 +30,10 @@ app.use('/api/*', async (c, next) => {
 
 app.get('/health', (c) => c.json({ ok: true, service: 'lumiere-api' }))
 
+// Links sent before the storefront callback URLs were made absolute.
+app.get('/verify/', (c) => c.redirect(new URL(`/verify/${new URL(c.req.url).search}`, c.env.APP_ORIGIN).toString()))
+app.get('/reset-password/', (c) => c.redirect(new URL(`/reset-password/${new URL(c.req.url).search}`, c.env.APP_ORIGIN).toString()))
+
 app.on(['GET', 'POST'], '/api/auth/*', (c) => createAuth(c.env).handler(c.req.raw))
 app.route('/api/products', productRoutes)
 app.route('/api/orders', orderRoutes)
