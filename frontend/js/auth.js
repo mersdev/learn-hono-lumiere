@@ -5,7 +5,8 @@ import { renderShell, setBusy, toast } from './ui.js';
 const state = document.body.dataset.authState || new URLSearchParams(location.search).get('state') || 'signin';
 const root = document.getElementById('auth-root');
 const requestedNext = new URLSearchParams(location.search).get('next');
-const afterLogin = requestedNext && requestedNext.startsWith('/') && !requestedNext.startsWith('//') ? requestedNext : '/';
+const nextUrl = requestedNext?.startsWith('/') ? new URL(requestedNext, location.origin) : null;
+const afterLogin = nextUrl?.origin === location.origin ? nextUrl.pathname + nextUrl.search + nextUrl.hash : '/';
 
 // 2. Reusable UI Components
 const formHeader = (title, subtitle) => `
