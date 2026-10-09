@@ -2,6 +2,8 @@
 
 PetitBakery is a beginner-friendly bakery storefront you can run and study.
 
+The Lumière frontend design rules are in [Design.md](Design.md).
+
 ## Quick start: frontend + backend
 
 ```bash
