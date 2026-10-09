@@ -46,7 +46,7 @@ try {
     pass('Hono routes and trusted checkout checks are present')
   }
   if (!stage || stage >= 4) {
-    await required('backend/wrangler.jsonc', ['lumiere-api', 'lumiere-db', 'd1_databases', 'lumiere.csproject@gmail.com'])
+    await required('backend/wrangler.jsonc', ['lumiere-api', 'lumiere-db', 'd1_databases', 'dehoulworker@gmail.com'])
     await required('.github/workflows/deploy-backend.yml', ['test-backend:', 'deploy-backend:', 'needs: test-backend', 'CLOUDFLARE_API_TOKEN', 'BETTER_AUTH_SECRET', 'BREVO_API_KEY', 'ENABLE_LUMIERE_DEPLOY', 'npm run deploy --prefix backend'])
     await required('.github/workflows/deploy-frontend.yml', ['test-frontend:', 'deploy-frontend:', 'needs: test-frontend', 'CLOUDFLARE_API_TOKEN', 'wrangler pages deploy frontend'])
     await required('frontend/_headers', ['Content-Security-Policy', 'frame-ancestors'])

@@ -10,7 +10,7 @@
     "APP_ORIGIN": "https://lumiere-bpk-cba.pages.dev",
     "CORS_ORIGIN": "https://lumiere-bpk-cba.pages.dev",
     "BETTER_AUTH_URL": "https://lumiere-api.velozz.workers.dev/api/auth",
-    "EMAIL_FROM": "lumiere.csproject@gmail.com"
+    "EMAIL_FROM": "dehoulworker@gmail.com"
   },
   "d1_databases": [
     {

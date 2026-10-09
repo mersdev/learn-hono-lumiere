@@ -292,7 +292,7 @@ Verify your sending address or domain in Brevo.
 Recommended:
 
 ```text
-EMAIL_FROM = lumiere.csproject@gmail.com
+EMAIL_FROM = dehoulworker@gmail.com
 ```
 
 Store the Brevo API key as GitHub secret `BREVO_API_KEY` for deployment. GitHub
