@@ -7,16 +7,16 @@
     "enabled": true
   },
   "vars": {
-    "APP_ORIGIN": "https://lumiere-bpk.pages.dev",
-    "CORS_ORIGIN": "https://lumiere-bpk.pages.dev",
-    "BETTER_AUTH_URL": "https://lumiere-api.p22014454.workers.dev/api/auth",
+    "APP_ORIGIN": "https://lumiere-bpk-cba.pages.dev",
+    "CORS_ORIGIN": "https://lumiere-bpk-cba.pages.dev",
+    "BETTER_AUTH_URL": "https://lumiere-api.velozz.workers.dev/api/auth",
     "EMAIL_FROM": "lumiere.csproject@gmail.com"
   },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "lumiere-db",
-      "database_id": "eae92745-8c51-42eb-bdd5-af055ada0710"
+      "database_id": "aa518f92-aebf-4dcd-868b-ec7d78072fc8"
     }
   ]
   

@@ -334,8 +334,8 @@ The backend deploy job writes the two runtime secrets to the Worker. The fronten
 The production origins are committed in `backend/wrangler.jsonc` and `frontend/js/config.js`:
 
 ```text
-APP_ORIGIN=https://lumiere-bpk.pages.dev
-PUBLIC_API_BASE=https://lumiere-api.p22014454.workers.dev
+APP_ORIGIN=https://lumiere-bpk-cba.pages.dev
+PUBLIC_API_BASE=https://lumiere-api.velozz.workers.dev
 ```
 
 For stronger cookie/CSP ergonomics, use a custom domain:
