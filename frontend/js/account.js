@@ -38,7 +38,7 @@ async function init() {
     ordersHtml = `
       <div class="text-center py-20 border border-slate-200 bg-slate-50 mt-8">
          <p class="text-slate-500 font-serif mb-8 text-lg">You have no recent orders.</p>
-         <a href="/the-collection/" class="bg-slate-900 text-white text-[10px] font-bold tracking-[0.2em] uppercase px-10 py-4 hover:bg-slate-800 transition-colors inline-block">Explore Collection</a>
+         <a href="/products/" class="lumiere-btn">Explore Collection</a>
       </div>
     `;
   } else {
@@ -71,7 +71,7 @@ async function init() {
         : `Waybill: <span class="text-slate-400 italic">Pending Tracking</span>`;
 
       return `
-        <div class="border border-[#d2d0cb] p-8 mb-8 bg-white hover:shadow-sm transition-shadow">
+        <div class="border border-slate-200 p-8 mb-8 bg-white hover:shadow-sm transition-shadow">
           
           <div class="flex flex-wrap gap-6 justify-between items-center pb-2">
             <div>
@@ -103,7 +103,7 @@ async function init() {
 
           <!-- Removed 'open' attribute so it stays closed by default -->
           <details class="group mt-6">
-            <summary class="text-[9px] font-bold tracking-[0.2em] text-slate-500 uppercase cursor-pointer pt-6 border-t border-[#d2d0cb] hover:text-slate-900 transition-colors select-none flex justify-between items-center outline-none">
+            <summary class="text-[9px] font-bold tracking-[0.2em] text-slate-500 uppercase cursor-pointer pt-6 border-t border-slate-200 hover:text-slate-900 transition-colors select-none flex justify-between items-center outline-none">
               Track & Manage Order
               <svg class="w-4 h-4 transform group-open:rotate-180 transition-transform text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
             </summary>
@@ -111,7 +111,7 @@ async function init() {
             <div class="pt-10 pb-4">
               
               <div class="relative max-w-2xl mx-auto pt-4 pb-16">
-                <div class="absolute top-1/2 left-0 w-full border-t-[2px] border-dotted border-[#d2d0cb] -z-10 -translate-y-[1px]"></div>
+                <div class="absolute top-1/2 left-0 w-full border-t-[2px] border-dotted border-slate-200 -z-10 -translate-y-[1px]"></div>
                 <div class="absolute top-1/2 left-0 border-t-[2px] border-solid border-slate-900 -z-10 -translate-y-[1px] transition-all duration-700" style="width: ${((activeStep - 1) / 3) * 100}%"></div>
                 
                 <div class="flex justify-between w-full">
@@ -120,15 +120,15 @@ async function init() {
                     <span class="text-[9px] font-bold tracking-[0.15em] uppercase ${activeStep >= 1 ? 'text-slate-900' : 'text-slate-400'}">${step1}</span>
                   </div>
                   <div class="flex flex-col items-center gap-4 bg-white px-2">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${activeStep >= 2 ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-400 border border-[#d2d0cb]'}">2</div>
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${activeStep >= 2 ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-400 border border-slate-200'}">2</div>
                     <span class="text-[9px] font-bold tracking-[0.15em] uppercase ${activeStep >= 2 ? 'text-slate-900' : 'text-slate-400'}">${step2}</span>
                   </div>
                   <div class="flex flex-col items-center gap-4 bg-white px-2">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${activeStep >= 3 ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-400 border border-[#d2d0cb]'}">3</div>
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${activeStep >= 3 ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-400 border border-slate-200'}">3</div>
                     <span class="text-[9px] font-bold tracking-[0.15em] uppercase ${activeStep >= 3 ? 'text-slate-900' : 'text-slate-400'}">${step3}</span>
                   </div>
                   <div class="flex flex-col items-center gap-4 bg-white px-2">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${activeStep >= 4 ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-400 border border-[#d2d0cb]'}">4</div>
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${activeStep >= 4 ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-400 border border-slate-200'}">4</div>
                     <span class="text-[9px] font-bold tracking-[0.15em] uppercase ${activeStep >= 4 ? 'text-slate-900' : 'text-slate-400'}">${step4}</span>
                   </div>
                 </div>

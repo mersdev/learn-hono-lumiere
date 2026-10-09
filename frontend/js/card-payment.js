@@ -105,7 +105,7 @@ async function init() {
         </div>
         
         <div class="pt-6 border-t border-slate-100">
-          <button type="submit" id="submit-btn" class="w-full bg-[#111827] hover:bg-black text-white font-bold text-[10px] tracking-widest uppercase py-4 transition-colors mb-4">
+          <button type="submit" id="submit-btn" class="lumiere-btn w-full mb-4">
             Pay ${money(subtotal)}
           </button>
           

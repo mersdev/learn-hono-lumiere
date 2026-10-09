@@ -40,7 +40,7 @@ async function init() {
     wishlistContent = `
       <div class="col-span-full py-20 text-center bg-slate-50 border border-slate-100 mt-4">
         <p class="text-slate-500 font-serif mb-8 text-lg">Your curated selection is currently empty.</p>
-        <a href="/the-collection/" class="lumiere-btn px-10 py-3">Explore The Collection</a>
+        <a href="/products/" class="lumiere-btn">Explore The Collection</a>
       </div>
     `;
   } else {

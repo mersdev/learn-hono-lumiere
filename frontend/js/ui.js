@@ -1,23 +1,6 @@
 import { cartCount } from './cart-store.js'
 import { getCurrentUser, api } from './api.js'
 
-// Inject Global Fonts & Custom CSS for the new aesthetic
-const styleInjection = document.createElement('style');
-styleInjection.textContent = `
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;600;700&display=swap');
-  body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-  .font-serif { font-family: 'Playfair Display', serif; }
-  .lumiere-gold { color: #b8974a; }
-  
-  .lumiere-btn { background-color: #111827; color: white; border-radius: 0; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.75rem; font-weight: 700; padding: 1rem 1.5rem; transition: background-color 0.2s; border: 1px solid #111827; display: inline-block; text-align: center; cursor: pointer; }
-  .lumiere-btn:hover:not(:disabled) { background-color: #000; }
-  .lumiere-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  
-  .lumiere-btn-outline { background-color: transparent; border: 1px solid #111827; color: #111827; border-radius: 0; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.75rem; font-weight: 700; padding: 1rem 1.5rem; transition: all 0.2s; display: inline-block; text-align: center; cursor: pointer; }
-  .lumiere-btn-outline:hover { background-color: #111827; color: white; }
-`;
-document.head.appendChild(styleInjection);
-
 export function money(cents) {
   return new Intl.NumberFormat('en-MY', { style: 'currency', currency: 'MYR' }).format(cents / 100)
 }
@@ -31,7 +14,7 @@ export function toast(message, type = 'info') {
     document.body.appendChild(host)
   }
   const el = document.createElement('div')
-  const tone = type === 'error' ? 'bg-red-600' : type === 'success' ? 'bg-[#b8974a]' : 'bg-slate-900'
+  const tone = type === 'error' ? 'bg-red-700' : type === 'success' ? 'bg-green-700' : 'bg-slate-900'
   el.className = `toast ${tone} max-w-sm rounded-none px-6 py-4 text-sm font-medium text-white shadow-xl tracking-wide`
   el.textContent = message
   host.appendChild(el)
@@ -68,25 +51,34 @@ export async function renderShell() {
                      location.pathname.includes('/forgot-password');
 
   if (header) {
+    const accountLinks = (user && !isAuthPage)
+      ? `<a href="/account/" class="text-[10px] font-bold tracking-widest text-slate-900 uppercase hover:text-slate-500 transition-colors">Profile</a>
+         <button data-logout class="text-[10px] font-bold tracking-widest text-slate-900 uppercase hover:text-slate-500 transition-colors bg-transparent border-none p-0 cursor-pointer">Logout</button>`
+      : `<a href="/login/" class="text-[10px] font-bold tracking-widest text-slate-900 uppercase hover:text-slate-500 transition-colors">Account</a>`
     header.className = 'sticky top-0 z-40 bg-white border-b border-slate-200 shrink-0';
     header.innerHTML = `
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-24">
           <a href="/" class="text-2xl font-serif font-bold tracking-[0.2em] text-slate-950 uppercase">LUMIÈRE</a>
-          <nav class="hidden md:flex gap-8 items-center">
+          <nav class="hidden md:flex gap-8 items-center" aria-label="Main navigation">
             <a href="/products/" class="text-[10px] font-bold tracking-widest text-slate-900 uppercase hover:text-slate-500 transition-colors">The Collection</a>
             <a href="/authenticate/" class="text-[10px] font-bold tracking-widest text-slate-900 uppercase hover:text-slate-500 transition-colors">Authenticate</a>
             <a href="/cart/" class="text-[10px] font-bold tracking-widest text-slate-900 uppercase hover:text-slate-500 transition-colors">Cart (<span data-cart-count>0</span>)</a>
-            ${(user && !isAuthPage)
-              ? `<a href="/account/" class="text-[10px] font-bold tracking-widest text-slate-900 uppercase hover:text-slate-500 transition-colors">Profile</a>
-                 <button id="nav-logout" class="text-[10px] font-bold tracking-widest text-slate-900 uppercase hover:text-slate-500 transition-colors bg-transparent border-none p-0 cursor-pointer">Logout</button>` 
-              : `<a href="/login/" class="text-[10px] font-bold tracking-widest text-slate-900 uppercase hover:text-slate-500 transition-colors">Account</a>`}
+            ${accountLinks}
           </nav>
+          <details class="relative md:hidden">
+            <summary class="lumiere-btn-outline list-none">Menu</summary>
+            <nav class="absolute right-0 top-full mt-2 flex min-w-48 flex-col gap-5 border border-slate-200 bg-white p-5 shadow-sm" aria-label="Mobile navigation">
+              <a href="/products/">The Collection</a>
+              <a href="/authenticate/">Authenticate</a>
+              <a href="/cart/">Cart (<span data-cart-count>0</span>)</a>
+              ${accountLinks}
+            </nav>
+          </details>
         </div>
       </div>`
 
-    const logoutBtn = document.getElementById('nav-logout');
-    if (logoutBtn) {
+    header.querySelectorAll('[data-logout]').forEach((logoutBtn) => {
       logoutBtn.addEventListener('click', async () => {
         logoutBtn.textContent = 'LOGGING OUT...';
         
@@ -116,7 +108,7 @@ export async function renderShell() {
           window.location.href = '/';
         }
       });
-    }
+    })
   }
 
   // Redesigned Official Luxury Footer

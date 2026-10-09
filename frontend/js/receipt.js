@@ -114,7 +114,7 @@ async function init() {
        return `
          <div class="flex items-center justify-between py-8">
            <div class="flex items-center gap-8">
-             <div class="w-20 h-20 bg-[#e6e4df] border border-[#d2d0cb] p-2 shrink-0 flex items-center justify-center relative">
+             <div class="w-20 h-20 bg-slate-50 border border-slate-200 p-2 shrink-0 flex items-center justify-center relative">
                 <img src="${escapeHtml(imgUrl)}" alt="${escapeHtml(name)}" class="w-full h-full object-contain mix-blend-multiply z-10 relative" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                 <span class="absolute inset-0 hidden items-center justify-center text-slate-400 text-[9px] font-bold uppercase tracking-widest text-center leading-tight">NO<br>IMG</span>
              </div>
@@ -141,10 +141,10 @@ async function init() {
           <div class="mt-16 text-center">
             <p class="text-base text-slate-500 font-serif mb-10">Order <strong class="text-slate-900">#${escapeHtml(displayIdForQR)}</strong> is ready for collection at <strong class="text-slate-900">Pavilion KL Boutique</strong>.</p>
             
-            <div class="bg-[#e4e2dd] p-12 max-w-md mx-auto mb-10 border border-[#d2d0cb]">
+            <div class="bg-slate-50 p-12 max-w-md mx-auto mb-10 border border-slate-200">
                <p class="text-[10px] font-bold tracking-[0.2em] text-slate-900 uppercase mb-8">Collection Protocol</p>
                
-               <div class="w-56 h-56 mx-auto bg-white p-4 mb-6 transition-opacity duration-300 border border-[#d2d0cb]">
+               <div class="w-56 h-56 mx-auto bg-white p-4 mb-6 transition-opacity duration-300 border border-slate-200">
                    <div id="qr-container" class="w-full h-full flex items-center justify-center">
                       ${generateSVGQR(displayIdForQR + rawPin)}
                    </div>
@@ -171,9 +171,9 @@ async function init() {
     }
 
     root.innerHTML = `
-      <div class="border border-[#d2d0cb] bg-transparent p-10 sm:p-16 max-w-4xl mx-auto mb-20">
+      <div class="border border-slate-200 bg-transparent p-10 sm:p-16 max-w-4xl mx-auto mb-20">
          <!-- Header -->
-         <div class="flex flex-col md:flex-row justify-between md:items-start gap-8 border-b border-[#d2d0cb] pb-10 mb-8">
+         <div class="flex flex-col md:flex-row justify-between md:items-start gap-8 border-b border-slate-200 pb-10 mb-8">
             <div>
                <p class="text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase mb-3">Order Date</p>
                <p class="text-base font-serif text-slate-900">${dateStr}</p>
@@ -185,12 +185,12 @@ async function init() {
          </div>
 
          <!-- Items -->
-         <div class="border-b border-[#d2d0cb] pb-8 mb-8">
+         <div class="border-b border-slate-200 pb-8 mb-8">
             ${itemsList}
          </div>
 
          <!-- Total -->
-         <div class="flex justify-between items-center border-b border-[#d2d0cb] pb-10">
+         <div class="flex justify-between items-center border-b border-slate-200 pb-10">
             <h2 class="text-3xl font-serif text-slate-900">Total</h2>
             <div class="text-right">
                <p class="text-3xl font-bold lumiere-gold tracking-wide mb-3">${money(amount)}</p>

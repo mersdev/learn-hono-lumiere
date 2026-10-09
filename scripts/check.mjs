@@ -12,22 +12,23 @@ const required = async (file, needles) => {
 const pass = (message) => console.log(`✓ ${message}`)
 
 try {
-  await required('frontend/index.html', ['LUMIÈRE', 'pb-hero', 'pb-category-grid', 'pb-product-grid', 'pb-faq', '/products/'])
-  await required('frontend/styles.css', ['--pb-cream', '.pb-hero', '.pb-product-grid'])
-  for (const route of ['products', 'product', 'cart', 'checkout', 'login', 'register', 'account', 'verify', 'verification', 'resend-verification', 'forgot-password', 'reset-password']) await required(`frontend/${route}/index.html`, ['LUMIÈRE'])
-  await required('frontend/assets/images/petitbakery-hero-cake.png', [])
-  await required('frontend/assets/images/petitbakery-logo.png', [])
-  await required('frontend/js/ui.js', ['petitbakery-logo.png', 'pb-float-cart', 'Add to cart', 'pb-nav-login'])
+  await required('Design.md', ['# Lumière frontend design', '--color-canvas', '.lumiere-btn'])
+  await required('frontend/styles.css', ['--color-canvas', '.lumiere-btn', '.lumiere-panel'])
+  for (const route of ['', 'products/', 'product/', 'cart/', 'checkout/', 'login/', 'register/', 'account/', 'account/details/', 'account/saved/', 'account/security/', 'admin/', 'admin/order/', 'authenticate/', 'card-payment/', 'contact/', 'faq/', 'forgot-password/', 'payment/', 'privacy/', 'receipt/', 'resend-verification/', 'reset-password/', 'terms/', 'verification/', 'verify/']) {
+    await required(`frontend/${route}index.html`, ['LUMIÈRE', '/styles.css', 'site-header'])
+  }
+  await required('frontend/assets/images/lumiere-hero-bag.png', [])
+  await required('frontend/js/ui.js', ['LUMIÈRE', 'Mobile navigation', 'data-cart-count'])
   await required('frontend/js/product-images.js', ['prod_lv_neverfull', 'prod_bvlgari_bzero1', '/assets/images/products/'])
   await required('frontend/js/catalog-fallback.js', ['prod_lv_neverfull', 'prod_bvlgari_bzero1', 'fallbackProducts'])
   for (const image of ['lv-neverfull', 'dior-lady', 'chanel-flap', 'hermes-birkin', 'rolex-submariner', 'rolex-datejust', 'cartier-tank', 'apm-meteorites', 'cartier-love', 'vca-alhambra', 'tiffany-smile', 'bvlgari-bzero1']) await required(`frontend/assets/images/products/${image}.png`, [])
-  for (const image of ['category-bags-cutout', 'category-watches-cutout', 'category-bangles-cutout', 'category-necklaces-cutout']) await required(`frontend/assets/images/products/${image}.png`, [])
+  for (const image of ['category-bag-cutout', 'category-watch-cutout', 'category-bangle-cutout', 'category-necklace-cutout']) await required(`frontend/assets/images/products/${image}.png`, [])
   await required('.env.example', ['BETTER_AUTH_SECRET', 'RESEND_API_KEY', 'CLOUDFLARE_API_TOKEN'])
   pass('Lumière storefront shell is present')
 
   if (!stage || stage >= 2) {
     await required('backend/migrations/0002_seed_products.sql', ['Bags', 'Watches', 'Bangles', 'Necklaces'])
-    await required('frontend/js/home.js', ['/api/products'])
+    await required('frontend/js/home.js', ['renderShell'])
     await required('frontend/js/products.js', ['/api/products', 'category'])
     pass('Lumière catalogue and cart entry points are present')
   }
@@ -45,7 +46,7 @@ try {
     pass('Hono routes and trusted checkout checks are present')
   }
   if (!stage || stage >= 4) {
-    await required('backend/wrangler.jsonc', ['petitbakery-api', 'petitbakery-db', 'd1_databases', 'onboarding@resend.dev'])
+    await required('backend/wrangler.jsonc', ['lumiere-api', 'lumiere-db', 'd1_databases', 'onboarding@resend.dev'])
     await required('.github/workflows/deploy-backend.yml', ['test-backend:', 'deploy-backend:', 'needs: test-backend', 'CLOUDFLARE_API_TOKEN', 'BETTER_AUTH_SECRET', 'RESEND_API_KEY', 'npm run deploy --prefix backend'])
     await required('.github/workflows/deploy-frontend.yml', ['test-frontend:', 'deploy-frontend:', 'needs: test-frontend', 'CLOUDFLARE_API_TOKEN', 'wrangler pages deploy frontend'])
     await required('frontend/_headers', ['Content-Security-Policy', 'frame-ancestors'])

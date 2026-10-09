@@ -7,10 +7,10 @@ async function init() {
   const header = document.getElementById('site-header');
   if (header) {
     header.innerHTML = `
-      <div class="w-full flex items-center justify-between px-4 py-6 sm:px-6 lg:px-8 max-w-7xl mx-auto border-b border-[#d2d0cb] bg-transparent">
+      <div class="w-full flex items-center justify-between px-4 py-6 sm:px-6 lg:px-8 max-w-7xl mx-auto border-b border-slate-200 bg-transparent">
         <div class="flex items-center gap-4">
           <a href="/admin/" class="text-2xl font-serif text-slate-900 tracking-widest uppercase">LUMIÈRE</a>
-          <span class="text-[10px] font-bold tracking-[0.2em] text-slate-500 uppercase border-l border-[#d2d0cb] pl-4 mt-1">Order CRM</span>
+          <span class="text-[10px] font-bold tracking-[0.2em] text-slate-500 uppercase border-l border-slate-200 pl-4 mt-1">Order CRM</span>
         </div>
       </div>
     `;
@@ -96,9 +96,9 @@ function renderOrderInterface(root, order, items, allProducts) {
       const price = item.unit_price_cents || item.price_cents || order.total_cents;
 
       return `
-        <div class="flex justify-between items-center py-4 border-b border-[#d2d0cb] last:border-0">
+        <div class="flex justify-between items-center py-4 border-b border-slate-200 last:border-0">
           <div class="flex items-center gap-6">
-            <div class="w-16 h-16 border border-[#d2d0cb] overflow-hidden flex items-center justify-center p-2">
+            <div class="w-16 h-16 border border-slate-200 overflow-hidden flex items-center justify-center p-2">
               ${img ? `<img src="${escapeHtml(img)}" alt="" class="w-full h-full object-contain mix-blend-multiply">` : `<span class="text-slate-400 text-[9px] font-bold uppercase tracking-widest">Item</span>`}
             </div>
             <div>
@@ -120,7 +120,7 @@ function renderOrderInterface(root, order, items, allProducts) {
     String(order.fulfillment).toLowerCase().includes('pick');
 
   root.innerHTML = `
-    <div class="mb-12 flex justify-between items-end border-b border-[#d2d0cb] pb-6">
+    <div class="mb-12 flex justify-between items-end border-b border-slate-200 pb-6">
       <div>
         <h1 class="text-3xl font-serif text-slate-900 mb-2">Order #${escapeHtml(order.id).split('-')[0]}</h1>
         <p class="text-sm text-slate-500 font-serif">${dateStr}</p>
@@ -131,8 +131,8 @@ function renderOrderInterface(root, order, items, allProducts) {
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
       
       <div class="lg:col-span-8 space-y-10">
-        <div class="border border-[#d2d0cb] p-8">
-          <h2 class="text-[9px] font-bold tracking-[0.2em] text-slate-900 uppercase mb-6 border-b border-[#d2d0cb] pb-4">Customer & Logistics</h2>
+        <div class="border border-slate-200 p-8">
+          <h2 class="text-[9px] font-bold tracking-[0.2em] text-slate-900 uppercase mb-6 border-b border-slate-200 pb-4">Customer & Logistics</h2>
           <div class="grid grid-cols-2 gap-8 font-serif">
             <div>
               <p class="text-[10px] text-slate-500 uppercase tracking-widest mb-2 font-sans font-bold">Contact Name</p>
@@ -145,21 +145,21 @@ function renderOrderInterface(root, order, items, allProducts) {
           </div>
         </div>
 
-        <div class="border border-[#d2d0cb] p-8">
-          <h2 class="text-[9px] font-bold tracking-[0.2em] text-slate-900 uppercase mb-6 border-b border-[#d2d0cb] pb-4">Order Manifest</h2>
+        <div class="border border-slate-200 p-8">
+          <h2 class="text-[9px] font-bold tracking-[0.2em] text-slate-900 uppercase mb-6 border-b border-slate-200 pb-4">Order Manifest</h2>
           ${itemsHtml}
         </div>
       </div>
 
       <div class="lg:col-span-4 space-y-10">
-        <div class="bg-[#0b1325] p-8 shadow-xl text-white">
+        <div class="bg-slate-900 p-8 shadow-xl text-white">
           <h2 class="text-[9px] font-bold tracking-[0.2em] text-slate-400 uppercase mb-6 border-b border-slate-700 pb-4">Fulfillment Action</h2>
           
           <form id="order-action-form">
             
             <label class="block text-[9px] uppercase tracking-[0.2em] text-slate-300 mb-3 font-bold">Fulfillment Mode</label>
             <div class="relative mb-6">
-              <select id="action-fulfillment" class="w-full border border-slate-600 bg-[#162136] p-3 text-sm focus:outline-none focus:border-white font-serif text-white appearance-none cursor-pointer">
+              <select id="action-fulfillment" class="w-full border border-slate-600 bg-slate-800 p-3 text-sm focus:outline-none focus:border-white font-serif text-white appearance-none cursor-pointer">
                 <option value="delivery" ${!isPickupDefault ? 'selected' : ''}>Home Delivery</option>
                 <option value="pickup" ${isPickupDefault ? 'selected' : ''}>In-Store Pick-up</option>
               </select>
@@ -180,17 +180,17 @@ function renderOrderInterface(root, order, items, allProducts) {
             <div id="tracking-container">
             </div>
             
-            <button type="submit" class="w-full bg-[#f4f3f0] text-slate-900 text-[10px] uppercase tracking-[0.2em] font-bold py-4 hover:bg-white transition-colors mt-8">
+            <button type="submit" class="w-full bg-white text-slate-900 text-[10px] uppercase tracking-[0.2em] font-bold py-4 hover:bg-white transition-colors mt-8">
               Commit Update
             </button>
           </form>
         </div>
 
-        <div class="border border-[#d2d0cb] p-8">
-          <h2 class="text-[9px] font-bold tracking-[0.2em] text-slate-900 uppercase mb-6 border-b border-[#d2d0cb] pb-4">Financials</h2>
+        <div class="border border-slate-200 p-8">
+          <h2 class="text-[9px] font-bold tracking-[0.2em] text-slate-900 uppercase mb-6 border-b border-slate-200 pb-4">Financials</h2>
           <div class="flex justify-between text-sm mb-3 text-slate-600 font-serif"><p>Subtotal</p><p>${money(order.total_cents)}</p></div>
           <div class="flex justify-between text-sm mb-6 text-slate-600 font-serif"><p>Shipping</p><p>RM 0.00</p></div>
-          <div class="flex justify-between text-base font-medium text-slate-900 pt-4 border-t border-[#d2d0cb] font-serif"><p>Total Revenue</p><p>${money(order.total_cents)}</p></div>
+          <div class="flex justify-between text-base font-medium text-slate-900 pt-4 border-t border-slate-200 font-serif"><p>Total Revenue</p><p>${money(order.total_cents)}</p></div>
         </div>
       </div>
 
@@ -206,10 +206,10 @@ function renderOrderInterface(root, order, items, allProducts) {
 
     if (isPickup) {
       statusSelect.innerHTML = `
-        <option value="confirmed" class="bg-[#0b1325] text-white">Confirmed (Pending)</option>
-        <option value="preparing" class="bg-[#0b1325] text-white">Preparing (Packing)</option>
-        <option value="ready" class="bg-[#0b1325] text-white">Ready for Pick-up</option>
-        <option value="collected" class="bg-[#0b1325] text-white">Collected (Picked Up)</option>
+        <option value="confirmed" class="bg-slate-900 text-white">Confirmed (Pending)</option>
+        <option value="preparing" class="bg-slate-900 text-white">Preparing (Packing)</option>
+        <option value="ready" class="bg-slate-900 text-white">Ready for Pick-up</option>
+        <option value="collected" class="bg-slate-900 text-white">Collected (Picked Up)</option>
       `;
       
       // Formatting the PIN to match the customer receipt spacing (e.g., 8 6 1 3 5 8)
@@ -222,7 +222,7 @@ function renderOrderInterface(root, order, items, allProducts) {
           <p class="text-sm font-serif text-white mb-6">Pavilion KL Boutique</p>
           
           <p class="text-[9px] uppercase tracking-widest text-slate-400 font-bold mb-3">Verification PIN</p>
-          <div class="w-full bg-[#162136] border border-slate-600 p-4 text-center">
+          <div class="w-full bg-slate-800 border border-slate-600 p-4 text-center">
              <p class="text-xl font-bold tracking-[0.25em] text-amber-500">${escapeHtml(formattedPin)}</p>
           </div>
           <input type="hidden" id="action-tracking" value="">
@@ -231,10 +231,10 @@ function renderOrderInterface(root, order, items, allProducts) {
       if (displayAddress) displayAddress.textContent = 'Boutique Pick-up (Pavilion KL)';
     } else {
       statusSelect.innerHTML = `
-        <option value="confirmed" class="bg-[#0b1325] text-white">Confirmed (Pending)</option>
-        <option value="processing" class="bg-[#0b1325] text-white">Processing (Packing)</option>
-        <option value="shipped" class="bg-[#0b1325] text-white">Shipped (Dispatched)</option>
-        <option value="delivered" class="bg-[#0b1325] text-white">Delivered</option>
+        <option value="confirmed" class="bg-slate-900 text-white">Confirmed (Pending)</option>
+        <option value="processing" class="bg-slate-900 text-white">Processing (Packing)</option>
+        <option value="shipped" class="bg-slate-900 text-white">Shipped (Dispatched)</option>
+        <option value="delivered" class="bg-slate-900 text-white">Delivered</option>
       `;
       trackingContainer.innerHTML = `
         <div class="mt-6 pt-6 border-t border-slate-700">

@@ -13,12 +13,12 @@ async function init() {
   const header = document.getElementById('site-header');
   if (header) {
     header.innerHTML = `
-      <div class="w-full flex items-center justify-between px-4 py-8 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <div class="w-full flex flex-col gap-5 px-4 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div class="flex items-center gap-4">
           <a href="/admin/" class="text-2xl font-serif text-slate-900 tracking-widest uppercase">LUMIÈRE</a>
           <span class="text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase border-l border-slate-300 pl-4 mt-1">Command Center</span>
         </div>
-        <nav class="flex gap-8 text-[10px] font-bold tracking-[0.2em] text-slate-900 uppercase items-center">
+        <nav class="flex flex-wrap gap-5 sm:gap-8 text-[10px] font-bold tracking-[0.2em] text-slate-900 uppercase items-center" aria-label="Admin navigation">
           <a href="/" class="hover:text-slate-500 transition-colors">View Storefront</a>
           <button id="admin-logout" class="hover:text-slate-500 transition-colors uppercase tracking-[0.2em] font-bold cursor-pointer">Logout</button>
         </nav>

@@ -50,7 +50,7 @@ async function init() {
         <p id="file-name-display" class="text-[10px] tracking-wide text-emerald-600 mt-3 hidden font-bold uppercase"></p>
       </div>
       
-      <button id="complete-btn" class="w-full bg-[#005bb5] hover:bg-[#004a94] text-white font-bold text-[10px] tracking-widest uppercase py-4 transition-colors mb-6">
+      <button id="complete-btn" class="lumiere-btn w-full mb-6">
         I Have Completed Payment
       </button>
       

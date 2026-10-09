@@ -41,7 +41,7 @@ async function init() {
       <p class="text-2xl lumiere-gold font-bold mb-6">${money(product.price_cents)}</p>
       
       <div class="mb-8">
-         <span class="inline-block bg-slate-950 text-[#b8974a] text-[9px] font-bold tracking-[0.15em] uppercase px-3 py-1.5">
+         <span class="inline-block bg-slate-950 lumiere-gold text-[9px] font-bold tracking-[0.15em] uppercase px-3 py-1.5">
            ✓ API Authenticity Verified
          </span>
       </div>
