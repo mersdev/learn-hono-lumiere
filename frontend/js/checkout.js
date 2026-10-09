@@ -103,7 +103,7 @@ async function init() {
     stateSelect.addEventListener('change', renderSummary)
   }
 
-  // Form Submission Logic - Routes to the shared demo confirmation screen
+  // Form Submission Logic - Routes to the demo confirmation screen
   const form = document.getElementById('checkout-form')
   form.addEventListener('submit', (event) => {
     event.preventDefault()
@@ -115,14 +115,7 @@ async function init() {
     
     sessionStorage.setItem('lumiere_checkout', JSON.stringify(payload))
     
-    const subtotal = cartSubtotal()
-    if (subtotal > 500000) {
-      // Keep existing route for bookmarked high-value checkouts.
-      window.location.href = '/card-payment/'
-    } else {
-      // Both routes render the same demo order review.
-      window.location.href = '/payment/'
-    }
+    window.location.href = '/payment/'
   })
 }
 
