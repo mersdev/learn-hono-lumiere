@@ -21,8 +21,8 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 $backend = $null
 $frontend = $null
 try {
-  Write-Host 'Starting PetitBakery Worker on http://localhost:8787'
-  Write-Host 'Starting PetitBakery Pages preview on http://localhost:8788'
+  Write-Host 'Starting Lumière Worker on http://localhost:8787'
+  Write-Host 'Starting Lumière Pages preview on http://localhost:8788'
   $backend = Start-Process -FilePath $env:ComSpec -ArgumentList '/d /s /c "npm.cmd --prefix backend run dev"' -WorkingDirectory $root -NoNewWindow -PassThru
   $frontend = Start-Process -FilePath 'node.exe' -ArgumentList 'scripts/serve-frontend.mjs' -WorkingDirectory $root -NoNewWindow -PassThru
 

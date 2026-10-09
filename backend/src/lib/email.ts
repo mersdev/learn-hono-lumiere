@@ -18,8 +18,7 @@ export async function sendTransactionalEmail(env: Bindings, input: EmailInput): 
       'accept': 'application/json'
     },
     body: JSON.stringify({
-      // CRITICAL: Change this email to the exact one you registered and verified in Brevo!
-      sender: { name: 'Lumière', email: 'lumiere.csproject@gmail.com' },
+      sender: { name: 'Lumière', email: env.EMAIL_FROM },
       to: [{ email: input.to }],
       subject: input.subject,
       htmlContent: input.html,

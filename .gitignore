@@ -1,6 +1,7 @@
 node_modules/
 .wrangler/
 .env
+.env copy.example
 backend/.dev.vars
 .DS_Store
 .DS_Store

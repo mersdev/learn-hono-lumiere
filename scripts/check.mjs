@@ -23,7 +23,7 @@ try {
   await required('frontend/js/catalog-fallback.js', ['prod_lv_neverfull', 'prod_bvlgari_bzero1', 'fallbackProducts'])
   for (const image of ['lv-neverfull', 'dior-lady', 'chanel-flap', 'hermes-birkin', 'rolex-submariner', 'rolex-datejust', 'cartier-tank', 'apm-meteorites', 'cartier-love', 'vca-alhambra', 'tiffany-smile', 'bvlgari-bzero1']) await required(`frontend/assets/images/products/${image}.png`, [])
   for (const image of ['category-bag-cutout', 'category-watch-cutout', 'category-bangle-cutout', 'category-necklace-cutout']) await required(`frontend/assets/images/products/${image}.png`, [])
-  await required('.env.example', ['BETTER_AUTH_SECRET', 'RESEND_API_KEY', 'CLOUDFLARE_API_TOKEN'])
+  await required('.env.example', ['BETTER_AUTH_SECRET', 'BREVO_API_KEY', 'CLOUDFLARE_API_TOKEN'])
   pass('Lumière storefront shell is present')
 
   if (!stage || stage >= 2) {
@@ -46,8 +46,8 @@ try {
     pass('Hono routes and trusted checkout checks are present')
   }
   if (!stage || stage >= 4) {
-    await required('backend/wrangler.jsonc', ['lumiere-api', 'lumiere-db', 'd1_databases', 'onboarding@resend.dev'])
-    await required('.github/workflows/deploy-backend.yml', ['test-backend:', 'deploy-backend:', 'needs: test-backend', 'CLOUDFLARE_API_TOKEN', 'BETTER_AUTH_SECRET', 'RESEND_API_KEY', 'npm run deploy --prefix backend'])
+    await required('backend/wrangler.jsonc', ['lumiere-api', 'lumiere-db', 'd1_databases', 'lumiere.csproject@gmail.com'])
+    await required('.github/workflows/deploy-backend.yml', ['test-backend:', 'deploy-backend:', 'needs: test-backend', 'CLOUDFLARE_API_TOKEN', 'BETTER_AUTH_SECRET', 'BREVO_API_KEY', 'ENABLE_LUMIERE_DEPLOY', 'npm run deploy --prefix backend'])
     await required('.github/workflows/deploy-frontend.yml', ['test-frontend:', 'deploy-frontend:', 'needs: test-frontend', 'CLOUDFLARE_API_TOKEN', 'wrangler pages deploy frontend'])
     await required('frontend/_headers', ['Content-Security-Policy', 'frame-ancestors'])
     await required('README.md', ['Cloudflare Pages', 'Cloudflare deployment', 'deploy-backend', 'deploy-frontend', 'products/index.html'])

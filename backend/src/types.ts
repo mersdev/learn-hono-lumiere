@@ -5,7 +5,6 @@ export type Bindings = {
   BETTER_AUTH_URL: string
   EMAIL_FROM: string
   BETTER_AUTH_SECRET: string
-  RESEND_API_KEY: string
   BREVO_API_KEY: string
 }
 

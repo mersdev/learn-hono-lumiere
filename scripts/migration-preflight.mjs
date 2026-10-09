@@ -2,7 +2,7 @@ import { spawnSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 
 const run = (command) => {
-  const result = spawnSync('npm', ['--prefix', 'backend', 'exec', '--', 'wrangler', 'd1', 'execute', 'petitbakery-db', '--remote', '--command', command, '--json'], { encoding: 'utf8', shell: process.platform === 'win32' })
+  const result = spawnSync('npm', ['--prefix', 'backend', 'exec', '--', 'wrangler', 'd1', 'execute', 'lumiere-db', '--remote', '--command', command, '--json'], { encoding: 'utf8', shell: process.platform === 'win32' })
   if (result.error) {
     process.stderr.write(`${result.error.message}\n`)
     process.exit(1)

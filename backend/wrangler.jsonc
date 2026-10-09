@@ -10,7 +10,7 @@
     "APP_ORIGIN": "https://lumiere-bpk.pages.dev",
     "CORS_ORIGIN": "https://lumiere-bpk.pages.dev",
     "BETTER_AUTH_URL": "https://lumiere-api.p22014454.workers.dev/api/auth",
-    "EMAIL_FROM": "Lumière <onboarding@resend.dev>"
+    "EMAIL_FROM": "lumiere.csproject@gmail.com"
   },
   "d1_databases": [
     {

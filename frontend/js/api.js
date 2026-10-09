@@ -1,7 +1,6 @@
 import { fallbackProducts } from './catalog-fallback.js'
 
-// Hardcode the live backend API to prevent config dropouts
-const API_BASE = 'https://lumiere-api.p22014454.workers.dev'
+const API_BASE = window.APP_CONFIG?.API_BASE || 'http://localhost:8787'
 
 function localFallback(path) {
   if (path === '/api/products') return { products: fallbackProducts }

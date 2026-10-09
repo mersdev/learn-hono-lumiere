@@ -10,9 +10,9 @@
     "dev": "wrangler dev --env-file=../.env",
     "deploy": "wrangler deploy",
     "typecheck": "tsc --noEmit",
-    "db:migrate:local": "wrangler d1 migrations apply petitbakery-db --local",
-    "db:migrate:remote": "wrangler d1 migrations apply petitbakery-db --remote",
-    "db:seed:local": "wrangler d1 execute petitbakery-db --local --file=./migrations/0002_seed_products.sql"
+    "db:migrate:local": "wrangler d1 migrations apply lumiere-db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply lumiere-db --remote",
+    "db:seed:local": "wrangler d1 execute lumiere-db --local --file=./migrations/0002_seed_products.sql"
   },
   "dependencies": {
     "better-auth": "^1.6.23",

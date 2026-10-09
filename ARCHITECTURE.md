@@ -9,7 +9,6 @@
 │ /login/ /register/ /account/ and verification folders     │
 └───────────────────────┬────────────────────────────────────┘
                         │ HTTPS fetch + credentials
-                        │ X-Captcha-Response on auth writes
                         v
 ┌────────────────────────────────────────────────────────────┐
 │ Cloudflare Worker — Hono                                   │
@@ -26,7 +25,7 @@
                 v                    v
       ┌─────────────────┐   ┌────────────────────┐
       │ Cloudflare D1   │   │ External email     │
-      │ users           │   │ Resend Free        │
+      │ users           │   │ Brevo API          │
       │ sessions        │   │ verify/reset links │
       │ products        │   └────────────────────┘
       │ orders          │
@@ -34,8 +33,6 @@
       │ rate limits     │
       └─────────────────┘
 
-Cloudflare Turnstile:
-browser widget -> token -> Worker -> Siteverify API
 ```
 
 ## Data trust boundaries
@@ -59,17 +56,18 @@ The backend therefore validates/bounds all values and reloads current prices fro
 - The backend workflow runs `test-backend`, then `deploy-backend` validates runtime secrets, applies remote D1 migrations and deploys the Hono Worker.
 - The frontend workflow runs `test-frontend`, then `deploy-frontend` uploads only `frontend/` to the Cloudflare Pages project.
 
-Each deploy job requires its workflow's test job; pull requests stop after validation.
+Each deploy job requires its workflow's test job and `ENABLE_LUMIERE_DEPLOY=true`;
+pull requests stop after validation.
 
 Only GitHub Secrets contain:
 
 - Cloudflare API token
 - Cloudflare account ID
-- password pepper
-- Resend API key
-- Turnstile secret
+- Better Auth secret
+- Brevo API key
 
-Public deployment configuration uses GitHub repository variables.
+Public deployment configuration is committed in `backend/wrangler.jsonc` and
+`frontend/js/config.js`.
 
 ## Recommended domain layout
 

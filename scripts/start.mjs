@@ -40,7 +40,7 @@ if (!existsSync('.env')) {
 
 process.loadEnvFile('.env')
 
-const requiredEnv = ['APP_ORIGIN', 'CORS_ORIGIN', 'BETTER_AUTH_URL', 'BETTER_AUTH_SECRET', 'RESEND_API_KEY']
+const requiredEnv = ['APP_ORIGIN', 'CORS_ORIGIN', 'BETTER_AUTH_URL', 'BETTER_AUTH_SECRET', 'BREVO_API_KEY']
 
 const missingEnv = requiredEnv.filter((key) => !process.env[key])
 
@@ -62,9 +62,9 @@ if (migration.status !== 0) process.exit(migration.status || 1)
 
 
 
-console.log('Starting PetitBakery Worker on http://localhost:8787')
+console.log('Starting Lumière Worker on http://localhost:8787')
 
-console.log('Starting PetitBakery Pages preview on http://localhost:8788')
+console.log('Starting Lumière Pages preview on http://localhost:8788')
 
 run(npm, ['--prefix', 'backend', 'run', 'dev'])
 

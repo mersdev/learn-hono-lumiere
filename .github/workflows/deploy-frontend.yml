@@ -1,4 +1,4 @@
-name: Test and deploy PetitBakery frontend
+name: Test and deploy Lumière frontend
 
 on:
   pull_request:
@@ -21,7 +21,7 @@ jobs:
       - run: npm run check:stage2
 
   deploy-frontend:
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && vars.ENABLE_LUMIERE_DEPLOY == 'true'
     needs: test-frontend
     runs-on: ubuntu-latest
     env:
@@ -32,4 +32,4 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 22
-      - run: npx wrangler pages deploy frontend --project-name petitbakery --branch main
+      - run: npx wrangler pages deploy frontend --project-name lumiere-bpk --branch main

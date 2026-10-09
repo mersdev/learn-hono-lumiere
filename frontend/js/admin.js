@@ -1,7 +1,7 @@
 import { api, getCurrentUser } from './api.js'
 import { money, renderShell, escapeHtml } from './ui.js'
 
-const API_URL = 'https://lumiere-api.p22014454.workers.dev';
+const API_URL = window.APP_CONFIG?.API_BASE || 'http://localhost:8787';
 
 let catalogData = [];
 let sortColumn = 'name';

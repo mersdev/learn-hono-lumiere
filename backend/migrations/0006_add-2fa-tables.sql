@@ -6,4 +6,4 @@ CREATE TABLE twoFactor (
     backupCodes TEXT NOT NULL,
     userId TEXT NOT NULL,
     FOREIGN KEY (userId) REFERENCES user(id)
-);npx wrangler d1 migrations apply lumiere-db --local
+);
