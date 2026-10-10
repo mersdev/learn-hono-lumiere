@@ -25,9 +25,16 @@ async function init() {
       </div>
     `;
 
-    document.getElementById('admin-logout')?.addEventListener('click', async () => {
-      try { await api('/api/auth/sign-out', { method: 'POST' }); } catch (e) {}
-      window.location.replace('/login/');
+    document.getElementById('admin-logout')?.addEventListener('click', async (event) => {
+      const button = event.currentTarget;
+      button.disabled = true;
+      try {
+        await api('/api/auth/sign-out', { method: 'POST', body: '{}' });
+        window.location.replace('/login/');
+      } catch (error) {
+        button.disabled = false;
+        alert(error.message);
+      }
     });
   }
 
@@ -36,6 +43,10 @@ async function init() {
   const user = await getCurrentUser();
   if (!user) {
     location.href = '/login/?next=/admin/';
+    return;
+  }
+  if (user.email !== 'lumiere.csproject@gmail.com') {
+    root.innerHTML = '<p class="py-12 text-center text-slate-600">Admin access required.</p>';
     return;
   }
 
@@ -53,7 +64,7 @@ async function init() {
   const catalogRoot = document.getElementById('catalog-root');
   catalogRoot.innerHTML = '<p class="text-slate-500 font-serif text-center py-12">Loading inventory...</p>';
   try {
-    const { products } = await api('/api/products');
+    const { products } = await api('/api/products/admin/all');
     catalogData = products;
     renderCatalogTable(catalogRoot);
   } catch (error) {
@@ -134,7 +145,7 @@ function renderCatalogTable(root) {
         <td class="py-4 px-4 text-sm font-medium text-slate-900">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 bg-slate-100 object-cover overflow-hidden border border-slate-200">
-              <img src="${product.image_url || ''}" alt="Product" class="w-full h-full object-cover">
+              <img src="${escapeHtml(product.image_url || '')}" alt="Product" class="w-full h-full object-cover">
             </div>
             ${escapeHtml(product.name)}
           </div>
@@ -193,7 +204,7 @@ function renderCatalogTable(root) {
   root.querySelectorAll('.edit-product-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const product = JSON.parse(btn.getAttribute('data-product'));
-      window.openProductModal(product.id, product.name, product.price_cents, product.stock, product.active ? 1 : 0, product.image_url || '');
+      window.openProductModal(product);
     });
   });
 }
@@ -202,13 +213,13 @@ function renderMetrics(orders) {
   if (!orders) return;
   const totalOrders = orders.length;
   const totalRevenueCents = orders.reduce((sum, order) => sum + order.total_cents, 0);
-  const pendingOrders = orders.filter(o => o.status === 'confirmed' || o.status === 'processing').length;
+  const pendingOrders = orders.filter(o => ['confirmed', 'processing', 'preparing'].includes(o.status)).length;
   
   const metricsRoot = document.getElementById('admin-metrics');
   if (metricsRoot) {
     metricsRoot.innerHTML = `
       <div class="bg-white p-6 border border-slate-200 shadow-sm flex flex-col justify-center">
-        <p class="text-[10px] font-bold tracking-widest text-slate-400 uppercase mb-2">Gross Revenue</p>
+        <p class="text-[10px] font-bold tracking-widest text-slate-400 uppercase mb-2">Order Value</p>
         <h3 class="text-3xl font-serif text-slate-900">${money(totalRevenueCents)}</h3>
       </div>
       <div class="bg-white p-6 border border-slate-200 shadow-sm flex flex-col justify-center">
@@ -217,7 +228,7 @@ function renderMetrics(orders) {
       </div>
       <div class="bg-white p-6 border border-slate-200 shadow-sm flex flex-col justify-center">
         <p class="text-[10px] font-bold tracking-widest text-slate-400 uppercase mb-2">Action Required</p>
-        <h3 class="text-3xl font-serif ${pendingOrders > 0 ? 'text-amber-600' : 'text-slate-900'}">${pendingOrders} ${pendingOrders === 1 ? 'Shipment' : 'Shipments'}</h3>
+        <h3 class="text-3xl font-serif ${pendingOrders > 0 ? 'text-amber-600' : 'text-slate-900'}">${pendingOrders} ${pendingOrders === 1 ? 'Order' : 'Orders'}</h3>
       </div>
     `;
   }
@@ -233,19 +244,13 @@ function renderAdminTable(root, orders) {
     'confirmed': 'bg-amber-100 text-amber-800',
     'processing': 'bg-blue-100 text-blue-800',
     'shipped': 'bg-indigo-100 text-indigo-800',
-    'delivered': 'bg-green-100 text-green-800'
+    'delivered': 'bg-green-100 text-green-800',
+    'preparing': 'bg-blue-100 text-blue-800',
+    'ready': 'bg-green-100 text-green-800',
+    'collected': 'bg-green-100 text-green-800'
   };
 
-  // --- ADMIN STATE BRIDGE ---
-  const localUpdates = JSON.parse(localStorage.getItem('lumiere_admin_updates') || '{}');
-
   const rows = orders.map(order => {
-    
-    // Merge new tracking and status data instantly
-    if (localUpdates[order.id]) {
-        order.status = localUpdates[order.id].status || order.status;
-        order.tracking_number = localUpdates[order.id].tracking_number || order.tracking_number;
-    }
 
     let dateStr = new Date(order.created_at * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     const idShort = order.id.split('-')[0].substring(0, 8).toUpperCase();
@@ -281,14 +286,16 @@ const productModal = document.getElementById('product-modal');
 const productForm = document.getElementById('product-form');
 const addProductBtn = document.getElementById('add-product-btn');
 
-window.openProductModal = (id, name, priceCents, stock, active, imageUrl) => {
+window.openProductModal = (product) => {
   document.getElementById('product-modal-title').textContent = 'Edit Product';
-  document.getElementById('modal-product-id').value = id;
-  document.getElementById('modal-product-name').value = name;
-  document.getElementById('modal-product-price').value = (priceCents / 100).toFixed(2);
-  document.getElementById('modal-product-stock').value = stock;
-  document.getElementById('modal-product-image').value = imageUrl;
-  document.getElementById('modal-product-status').value = active;
+  document.getElementById('modal-product-id').value = product.id;
+  document.getElementById('modal-product-name').value = product.name;
+  document.getElementById('modal-product-description').value = product.description;
+  document.getElementById('modal-product-category').value = product.category;
+  document.getElementById('modal-product-price').value = (product.price_cents / 100).toFixed(2);
+  document.getElementById('modal-product-stock').value = product.stock;
+  document.getElementById('modal-product-image').value = product.image_url;
+  document.getElementById('modal-product-status').value = product.active ? 1 : 0;
   productModal.classList.remove('hidden');
 };
 
@@ -296,6 +303,8 @@ addProductBtn?.addEventListener('click', () => {
   document.getElementById('product-modal-title').textContent = 'New Listing';
   document.getElementById('modal-product-id').value = '';
   document.getElementById('modal-product-name').value = '';
+  document.getElementById('modal-product-description').value = '';
+  document.getElementById('modal-product-category').value = 'Bags';
   document.getElementById('modal-product-price').value = '';
   document.getElementById('modal-product-stock').value = '1';
   document.getElementById('modal-product-image').value = '';
@@ -323,6 +332,8 @@ productForm?.addEventListener('submit', async (e) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         name: document.getElementById('modal-product-name').value.trim(),
+        description: document.getElementById('modal-product-description').value.trim(),
+        category: document.getElementById('modal-product-category').value,
         price_cents: Math.round(parseFloat(document.getElementById('modal-product-price').value) * 100),
         stock: parseInt(document.getElementById('modal-product-stock').value, 10),
         image_url: document.getElementById('modal-product-image').value.trim(),
@@ -336,7 +347,7 @@ productForm?.addEventListener('submit', async (e) => {
     const catalogRoot = document.getElementById('catalog-root');
     catalogRoot.innerHTML = '<p class="text-slate-500 font-serif text-center py-12">Refreshing inventory...</p>';
     
-    const { products } = await api('/api/products');
+    const { products } = await api('/api/products/admin/all');
     catalogData = products;
     renderCatalogTable(catalogRoot);
     

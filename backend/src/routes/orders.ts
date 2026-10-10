@@ -12,8 +12,12 @@ const ADMIN_EMAIL = 'lumiere.csproject@gmail.com'
 
 export const orderRoutes = new Hono<AppEnv>()
 
+orderRoutes.use('*', async (c, next) => {
+  if (c.req.method !== 'GET' && c.req.header('Origin') !== c.env.CORS_ORIGIN) throw new HttpError(403, 'Invalid request origin.')
+  await next()
+})
+
 orderRoutes.post('/', async (c) => {
-  if (c.req.header('Origin') !== c.env.CORS_ORIGIN) throw new HttpError(403, 'Invalid request origin.')
   const user = await requireUser(c)
 
   const idempotencyKey = safeText(c.req.header('Idempotency-Key'), 100)
@@ -75,8 +79,10 @@ orderRoutes.post('/', async (c) => {
     return { ...item, product }
   })
 
-  const deliveryMethod = body.deliveryMethod === 'pickup' ? 'pickup' : 'delivery'
+  if (body.deliveryMethod !== 'pickup' && body.deliveryMethod !== 'delivery') throw new HttpError(400, 'Choose a delivery method.')
+  const deliveryMethod = body.deliveryMethod
   const state = safeText(body.state, 80)
+  const states = ['Johor', 'Kedah', 'Kelantan', 'Melaka', 'Negeri Sembilan', 'Pahang', 'Penang', 'Perak', 'Perlis', 'Sabah', 'Sarawak', 'Selangor', 'Terengganu', 'W.P. Kuala Lumpur', 'W.P. Labuan', 'W.P. Putrajaya']
   const eastMalaysia = ['Sabah', 'Sarawak', 'W.P. Labuan'].includes(state)
   const shipping = deliveryMethod === 'pickup' ? 0 : (subtotal >= 8000 ? 0 : 799) + (eastMalaysia ? 3000 : 0)
   const tax = Math.round(subtotal * 0.06)
@@ -88,10 +94,13 @@ orderRoutes.post('/', async (c) => {
   const city = safeText(body.city, 80)
   const postalCode = safeText(body.postalCode, 20)
   const country = safeText(body.country, 60)
-  const phone = `${safeText(body.countryCode, 8)}${safeText(body.phone, 30)}`
+  const countryCode = safeText(body.countryCode, 8)
+  const phoneNumber = safeText(body.phone, 30)
+  const phone = `${countryCode}${phoneNumber}`
 
-  if (!fullName || !address1 || !city || !postalCode || !country) {
-    throw new HttpError(400, 'Complete the shipping address.')
+  if (!fullName || !address1 || !city || !postalCode || country !== 'Malaysia' || !states.includes(state) ||
+      !['+60', '+65', '+673', '+62'].includes(countryCode) || !/^\d{6,15}$/.test(phoneNumber.replace(/[\s-]/g, ''))) {
+    throw new HttpError(400, 'Complete the Malaysia contact and address details.')
   }
 
   // 🔥 THE FIX: Generate a short, 8-character uppercase hex string for all new orders
@@ -151,12 +160,17 @@ orderRoutes.post('/', async (c) => {
     )
     statements.push(
       c.env.DB
-        .prepare('UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?')
-        .bind(item.quantity, item.product.id, item.quantity)
+        .prepare('UPDATE products SET stock = stock - ? WHERE id = ?')
+        .bind(item.quantity, item.product.id)
     )
   }
 
-  await c.env.DB.batch(statements)
+  try {
+    await c.env.DB.batch(statements)
+  } catch (error) {
+    if (String(error).includes('CHECK constraint failed')) throw new HttpError(409, 'Stock changed. Review your cart and try again.')
+    throw error
+  }
 
   return c.json(
     {
@@ -252,14 +266,20 @@ orderRoutes.patch('/:id/shipping', async (c) => {
   const orderId = safeText(c.req.param('id'), 80)
   const body = await readJson<{ status?: string, tracking_number?: string }>(c)
   
-  const validStatuses = ['confirmed', 'processing', 'shipped', 'delivered', 'ready', 'collected', 'preparing']
+  const order = await c.env.DB.prepare('SELECT delivery_method FROM orders WHERE id = ?').bind(orderId).first<{ delivery_method: string }>()
+  if (!order) throw new HttpError(404, 'Order not found.')
+  const validStatuses = order.delivery_method === 'pickup'
+    ? ['confirmed', 'preparing', 'ready', 'collected']
+    : ['confirmed', 'processing', 'shipped', 'delivered']
   if (!body.status || !validStatuses.includes(body.status.toLowerCase())) {
     throw new HttpError(400, 'Invalid status update.')
   }
+  const trackingNumber = safeText(body.tracking_number, 100)
+  if (body.status.toLowerCase() === 'shipped' && !trackingNumber) throw new HttpError(400, 'Tracking number is required for shipped orders.')
 
   const result = await c.env.DB
     .prepare(`UPDATE orders SET status = ?, tracking_number = ? WHERE id = ?`)
-    .bind(body.status.toLowerCase(), body.tracking_number || null, orderId)
+    .bind(body.status.toLowerCase(), order.delivery_method === 'pickup' ? null : trackingNumber || null, orderId)
     .run()
 
   if (result.success) {

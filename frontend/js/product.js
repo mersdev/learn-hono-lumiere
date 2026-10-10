@@ -1,4 +1,4 @@
-import { api } from './api.js'
+import { api, getCurrentUser } from './api.js'
 import { addToCart } from './cart-store.js'
 import { imageForProduct } from './product-images.js'
 import { escapeHtml, money, renderShell, toast } from './ui.js'
@@ -15,9 +15,9 @@ async function init() {
   const categoryStr = escapeHtml(product.category || 'BAGS').toUpperCase();
   const titleStr = escapeHtml(product.name).toUpperCase();
 
-  // Check if item is already in wishlist
-  let localWishlist = JSON.parse(localStorage.getItem('lumiere_wishlist') || '[]');
-  let isSaved = localWishlist.some(item => item.id === product.id);
+  const user = await getCurrentUser()
+  const saved = user ? await api('/api/user/wishlist') : { items: [] }
+  const isSaved = saved.items.some(item => item.id === product.id)
 
   const wishlistBtnClass = isSaved 
     ? 'bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed' 
@@ -42,15 +42,15 @@ async function init() {
       
       <div class="mb-8">
          <span class="inline-block bg-slate-950 lumiere-gold text-[9px] font-bold tracking-[0.15em] uppercase px-3 py-1.5">
-           ✓ API Authenticity Verified
+           Available in the Lumière catalog
          </span>
       </div>
       
-      <p class="text-slate-600 mb-10 leading-relaxed text-sm">${escapeHtml(product.description || '')} Each piece is logged in our secure database with a unique serial number to guarantee authenticity and provenance.</p>
+      <p class="text-slate-600 mb-10 leading-relaxed text-sm">${escapeHtml(product.description || '')}</p>
       
       <div class="text-xs text-slate-500 mb-10 space-y-1">
         <!-- THE -D HAS BEEN REMOVED FROM THE LINE BELOW -->
-        <p>Serial Number: <span class="text-slate-900 font-mono tracking-wide">${escapeHtml(product.id.replace('prod_', '').toUpperCase())}</span></p>
+        <p>Catalog ID: <span class="text-slate-900 font-mono tracking-wide">${escapeHtml(product.id.replace('prod_', '').toUpperCase())}</span></p>
         <p>Availability: <span class="text-slate-900">${product.stock > 0 ? 'In Stock (Boutique Collection Available)' : 'Out of Stock'}</span></p>
       </div>
       
@@ -59,7 +59,7 @@ async function init() {
         <div class="hidden">
            <input id="qty" type="number" min="1" max="10" value="1">
         </div>
-        <button id="add" class="lumiere-btn w-full sm:flex-1 py-4" type="button">Add to Cart</button>
+        <button id="add" class="lumiere-btn w-full sm:flex-1 py-4" type="button" ${product.stock > 0 ? '' : 'disabled'}>${product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}</button>
         
         <button id="wishlist-btn" class="w-full sm:flex-1 border text-[10px] font-bold tracking-[0.2em] uppercase py-4 flex items-center justify-center gap-3 ${wishlistBtnClass}" ${isSaved ? 'disabled' : ''} type="button">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -79,26 +79,20 @@ async function init() {
 
   // --- WISHLIST LOGIC ---
   const wishlistBtn = document.getElementById('wishlist-btn');
-  wishlistBtn.addEventListener('click', () => {
-    let currentWishlist = JSON.parse(localStorage.getItem('lumiere_wishlist') || '[]');
-    
-    if (!currentWishlist.some(item => item.id === product.id)) {
-      // Push the item to local storage utilizing your specific imageForProduct import
-      currentWishlist.push({
-        id: product.id,
-        name: product.name,
-        price_cents: product.price_cents,
-        imageUrl: imageForProduct(product) 
-      });
-      
-      localStorage.setItem('lumiere_wishlist', JSON.stringify(currentWishlist));
-      toast('Added to your curated wishlist.', 'success');
-      
-      // Update the button UI instantly
-      const span = wishlistBtn.querySelector('span');
-      span.innerText = 'Saved in Wishlist';
-      wishlistBtn.className = 'w-full sm:flex-1 border text-[10px] font-bold tracking-[0.2em] uppercase py-4 flex items-center justify-center gap-3 bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed';
-      wishlistBtn.disabled = true;
+  wishlistBtn.addEventListener('click', async () => {
+    if (!user) {
+      location.href = `/login/?next=${encodeURIComponent(location.pathname + location.search)}`
+      return
+    }
+    wishlistBtn.disabled = true
+    try {
+      await api(`/api/user/wishlist/${encodeURIComponent(product.id)}`, { method: 'POST' })
+      toast('Added to your curated wishlist.', 'success')
+      wishlistBtn.querySelector('span').textContent = 'Saved in Wishlist'
+      wishlistBtn.className = 'w-full sm:flex-1 border text-[10px] font-bold tracking-[0.2em] uppercase py-4 flex items-center justify-center gap-3 bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed'
+    } catch (error) {
+      wishlistBtn.disabled = false
+      toast(error.message, 'error')
     }
   });
 }

@@ -1,4 +1,5 @@
 import { api, getCurrentUser } from './api.js';
+import { imageForProduct } from './product-images.js';
 import { renderShell, money, escapeHtml } from './ui.js';
 
 async function init() {
@@ -25,14 +26,18 @@ async function init() {
     </aside>
   `;
 
-  let savedItems = [];
-  try {
-    const res = await api('/api/user/wishlist');
-    savedItems = res.items || [];
-  } catch (e) {
-    const localWishlist = JSON.parse(localStorage.getItem('lumiere_wishlist') || '[]');
-    savedItems = localWishlist;
+  let oldItems = [];
+  try { oldItems = JSON.parse(localStorage.getItem('lumiere_wishlist') || '[]'); } catch {}
+  if (!Array.isArray(oldItems)) oldItems = [];
+  for (const item of oldItems) {
+    try {
+      await api(`/api/user/wishlist/${encodeURIComponent(item.id)}`, { method: 'POST' });
+    } catch (error) {
+      if (error.status !== 404) throw error;
+    }
   }
+  localStorage.removeItem('lumiere_wishlist');
+  const { items: savedItems } = await api('/api/user/wishlist');
 
   let wishlistContent = '';
 
@@ -47,13 +52,14 @@ async function init() {
     const itemsHtml = savedItems.map(item => `
       <div class="group border border-slate-200 bg-white hover:shadow-md transition-all duration-300 flex flex-col">
         <div class="aspect-square bg-slate-50 p-6 flex items-center justify-center relative overflow-hidden">
-          <img src="${escapeHtml(item.imageUrl || '')}" alt="${escapeHtml(item.name)}" class="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500">
+          <img src="${escapeHtml(imageForProduct(item))}" alt="${escapeHtml(item.name)}" class="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500">
         </div>
         <div class="p-6 flex flex-col flex-1">
           <h3 class="font-serif text-lg text-slate-900 mb-2">${escapeHtml(item.name)}</h3>
           <p class="text-sm lumiere-gold font-bold tracking-wide mb-6">${money(item.price_cents || 0)}</p>
           <div class="mt-auto flex gap-3">
-            <a href="/product/?id=${item.id}" class="lumiere-btn-outline flex-1 text-center py-3 text-[10px]">View Details</a>
+            <a href="/product/?id=${encodeURIComponent(item.id)}" class="lumiere-btn-outline flex-1 text-center py-3 text-[10px]">View Details</a>
+            <button type="button" data-remove="${escapeHtml(item.id)}" class="border border-slate-300 px-3 text-[10px] uppercase">Remove</button>
           </div>
         </div>
       </div>
@@ -73,6 +79,17 @@ async function init() {
   `;
 
   root.innerHTML = sidebar + mainContent;
+  root.querySelectorAll('[data-remove]').forEach((button) => button.addEventListener('click', async () => {
+    try {
+      await api(`/api/user/wishlist/${encodeURIComponent(button.dataset.remove)}`, { method: 'DELETE' });
+      location.reload();
+    } catch (error) {
+      alert(error.message);
+    }
+  }));
 }
 
-init().catch(console.error);
+init().catch((error) => {
+  const root = document.getElementById('account-root');
+  if (root) root.innerHTML = `<p class="border border-red-200 bg-red-50 p-6 text-red-700">${escapeHtml(error.message)}</p>`;
+});

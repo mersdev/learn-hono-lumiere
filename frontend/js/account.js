@@ -26,15 +26,18 @@ async function init() {
   `;
 
   let orders = [];
+  let ordersError = null;
   try {
     const res = await api(`/api/orders?t=${Date.now()}`);
     orders = res.orders || res.data || (Array.isArray(res) ? res : []);
   } catch (err) {
-    console.warn('Could not fetch orders from DB', err);
+    ordersError = err;
   }
 
   let ordersHtml = '';
-  if (!orders || orders.length === 0) {
+  if (ordersError) {
+    ordersHtml = `<p class="border border-red-200 bg-red-50 p-6 text-red-700">${escapeHtml(ordersError.message)}</p>`;
+  } else if (!orders || orders.length === 0) {
     ordersHtml = `
       <div class="text-center py-20 border border-slate-200 bg-slate-50 mt-8">
          <p class="text-slate-500 font-serif mb-8 text-lg">You have no recent orders.</p>
@@ -64,7 +67,6 @@ async function init() {
       if (statusUpper === 'PROCESSING' || statusUpper === 'PREPARING') activeStep = 2;
       else if (statusUpper === 'SHIPPED' || statusUpper === 'READY') activeStep = 3;
       else if (statusUpper === 'DELIVERED' || statusUpper === 'COLLECTED') activeStep = 4;
-      else if (!isPickup && order.tracking_number && order.tracking_number !== 'Pending Tracking') activeStep = 3;
 
       const trackingNum = order.tracking_number || order.tracking || order.waybill || null;
       const trackingDisplay = trackingNum 
@@ -81,7 +83,7 @@ async function init() {
             </div>
             <div>
               <p class="text-[9px] font-bold tracking-[0.2em] text-slate-400 uppercase mb-2">Date</p>
-              <p class="text-sm text-slate-900">${escapeHtml(order.date || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }))}</p>
+              <p class="text-sm text-slate-900">${new Date(order.created_at * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
             </div>
             <div>
               <p class="text-[9px] font-bold tracking-[0.2em] text-slate-400 uppercase mb-2">Total</p>
@@ -97,7 +99,7 @@ async function init() {
             </div>
             <div>
               <a href="/receipt/?id=${escapeHtml(rawId)}" class="inline-block border border-slate-900 text-slate-900 text-[9px] font-bold tracking-[0.2em] uppercase px-8 py-3 hover:bg-slate-900 hover:text-white transition-colors text-center w-full sm:w-auto">
-                VIEW INVOICE
+                VIEW ORDER
               </a>
             </div>
           </div>
@@ -137,7 +139,7 @@ async function init() {
 
               <div class="flex flex-col items-center justify-center max-w-3xl mx-auto border-t border-slate-100 pt-8">
                  <div class="text-center">
-                    <p class="text-[9px] font-bold tracking-[0.2em] text-slate-400 uppercase mb-3">${isPickup ? 'Pick-up Location' : 'Dispatched via DHL Express'}</p>
+                    <p class="text-[9px] font-bold tracking-[0.2em] text-slate-400 uppercase mb-3">${isPickup ? 'Pick-up Location' : 'Delivery tracking'}</p>
                     <p class="text-sm font-serif text-slate-900">${isPickup ? escapeHtml(order.location || 'Pavilion KL Boutique') : trackingDisplay}</p>
                  </div>
               </div>

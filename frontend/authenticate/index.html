@@ -6,36 +6,30 @@
   <link rel="stylesheet" href="/styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <script src="/js/config.js"></script>
-  <title>Verify Authenticity · LUMIÈRE</title>
+  <title>Catalog Lookup · LUMIÈRE</title>
 </head>
 <body class="min-h-screen flex flex-col bg-slate-50">
   <header id="site-header"></header>
   <main class="flex-grow w-full flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
      <div class="w-full max-w-2xl">
          <div class="text-center mb-10">
-             <h1 class="text-4xl font-serif text-slate-900">Verify Authenticity</h1>
+             <h1 class="text-4xl font-serif text-slate-900">Catalog Lookup</h1>
          </div>
          <div class="bg-white border border-slate-200 p-8 sm:p-14 shadow-sm">
              <p class="text-sm text-slate-500 text-center mb-8 max-w-md mx-auto leading-relaxed">
-                 Enter your product's unique serial number. Our system will check the external database to verify its origin and authenticity.
+                 Enter a Lumière catalog ID to find an item. This lookup does not verify an individual item's authenticity.
              </p>
              
              <form id="auth-form" class="max-w-md mx-auto">
                  <div class="mb-4">
-                     <label class="block text-[10px] font-bold tracking-[0.2em] text-slate-900 uppercase mb-3">Product Serial Number</label>
-                     <input type="text" id="serial-input" placeholder="e.g. LMR-XXXX-XXXX-XXXX" required class="w-full border border-slate-200 p-3 text-sm focus:border-slate-900 focus:outline-none bg-white">
+                     <label class="block text-[10px] font-bold tracking-[0.2em] text-slate-900 uppercase mb-3">Catalog ID</label>
+                     <input type="text" id="serial-input" placeholder="e.g. prod_lv_neverfull" required class="w-full border border-slate-200 p-3 text-sm focus:border-slate-900 focus:outline-none bg-white">
                  </div>
-                 <button type="submit" class="w-full lumiere-btn">Verify Serial Number</button>
+                 <button type="submit" class="w-full lumiere-btn">Find Item</button>
              </form>
              
              <!-- Hidden by default, triggered by authenticate.js -->
-             <div id="success-box" class="hidden mt-8 max-w-md mx-auto bg-[#f0fdf4] border border-[#bbf7d0] p-6 text-center">
-                 <h3 class="text-[#16a34a] font-bold mb-3">Item Verified Authentic</h3>
-                 <p class="text-xs text-slate-600 space-y-1">
-                     <span class="block">Serial: <strong id="display-serial" class="text-slate-900"></strong></span>
-                     <span class="block">Model: <span class="text-slate-900">Registered Lumière Piece</span></span>
-                 </p>
-             </div>
+             <div id="success-box" class="hidden mt-8 max-w-md mx-auto border border-slate-200 bg-slate-50 p-6 text-center"></div>
          </div>
      </div>
   </main>

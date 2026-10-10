@@ -64,7 +64,7 @@ async function init() {
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
             <div class="max-w-md">
               <h4 class="text-sm font-serif text-slate-900 mb-2">Two-Factor Authentication (2FA)</h4>
-              <p class="text-xs text-slate-500 leading-relaxed">Protect your account by requiring an email-based verification code whenever you sign in from a new device.</p>
+              <p class="text-xs text-slate-500 leading-relaxed">Protect your account by requiring an email-based verification code when you sign in.</p>
             </div>
             
             <label class="relative inline-flex items-center cursor-pointer shrink-0">
@@ -168,8 +168,8 @@ async function init() {
         toast('Enter the code sent to your email to enable 2FA.', 'success');
       } else {
         await api('/api/auth/two-factor/disable', { method: 'POST', body: JSON.stringify({ password }) });
-        updateToggleText(false);
-        toast('Two-Factor Authentication disabled.', 'success');
+        location.href = '/login/?next=/account/security/';
+        return;
       }
     } catch (err) {
       e.target.checked = !isActive;

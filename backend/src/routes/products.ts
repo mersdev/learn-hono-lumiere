@@ -5,14 +5,26 @@ import { HttpError, readJson, safeText } from '../lib/http'
 
 export const productRoutes = new Hono<AppEnv>()
 
+productRoutes.use('*', async (c, next) => {
+  if (c.req.method !== 'GET' && c.req.header('Origin') !== c.env.CORS_ORIGIN) throw new HttpError(403, 'Invalid request origin.')
+  await next()
+})
+
 const ADMIN_EMAIL = 'lumiere.csproject@gmail.com'
 
 // PUBLIC ROUTE: Get all products for storefront and admin catalog
 productRoutes.get('/', async (c) => {
   const result = await c.env.DB
-    .prepare(`SELECT * FROM products`)
+    .prepare('SELECT * FROM products WHERE active = 1')
     .all()
   
+  return c.json({ products: result.results })
+})
+
+productRoutes.get('/admin/all', async (c) => {
+  const user = await requireUser(c)
+  if (user.email !== ADMIN_EMAIL) throw new HttpError(403, 'Unauthorized. Admin access only.')
+  const result = await c.env.DB.prepare('SELECT * FROM products ORDER BY name').all()
   return c.json({ products: result.results })
 })
 
@@ -20,7 +32,7 @@ productRoutes.get('/', async (c) => {
 productRoutes.get('/:id', async (c) => {
   const productId = safeText(c.req.param('id'), 80)
   const product = await c.env.DB
-    .prepare(`SELECT * FROM products WHERE id = ?`)
+    .prepare('SELECT * FROM products WHERE id = ? AND active = 1')
     .bind(productId)
     .first()
 
@@ -37,18 +49,17 @@ productRoutes.post('/', async (c) => {
     throw new HttpError(403, 'Unauthorized. Admin access only.')
   }
   
-  const body = await readJson<{ name: string, price_cents: number, stock: number, image_url: string, active: number }>(c)
+  const body = await readJson<{ name: string, description: string, category: string, price_cents: number, stock: number, image_url: string, active: number }>(c)
+  const product = cleanProduct(body)
 
   const id = crypto.randomUUID()
+  const slug = `${product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-${id.slice(0, 8)}`
   await c.env.DB.prepare(
-    `INSERT INTO products (id, name, price_cents, stock, image_url, active) VALUES (?, ?, ?, ?, ?, ?)`
+    `INSERT INTO products (id, slug, name, description, category, price_cents, stock, image_url, active, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).bind(
-    id, 
-    safeText(body.name, 255), 
-    Number(body.price_cents), 
-    Number(body.stock), 
-    body.image_url ? safeText(body.image_url, 1000) : null, 
-    Number(body.active)
+    id, slug, product.name, product.description, product.category,
+    product.price_cents, product.stock, product.image_url, product.active, Math.floor(Date.now() / 1000)
   ).run()
 
   return c.json({ ok: true, id }, 201)
@@ -63,22 +74,38 @@ productRoutes.patch('/:id', async (c) => {
   }
   
   const productId = safeText(c.req.param('id'), 80)
-  const body = await readJson<{ name: string, price_cents: number, stock: number, image_url: string, active: number }>(c)
+  const body = await readJson<{ name: string, description: string, category: string, price_cents: number, stock: number, image_url: string, active: number }>(c)
+  const product = cleanProduct(body)
 
   const result = await c.env.DB.prepare(
-    `UPDATE products SET name = ?, price_cents = ?, stock = ?, image_url = ?, active = ? WHERE id = ?`
+    `UPDATE products SET name = ?, description = ?, category = ?, price_cents = ?, stock = ?, image_url = ?, active = ? WHERE id = ?`
   ).bind(
-    safeText(body.name, 255), 
-    Number(body.price_cents), 
-    Number(body.stock), 
-    body.image_url ? safeText(body.image_url, 1000) : null, 
-    Number(body.active), 
-    productId
+    product.name, product.description, product.category, product.price_cents,
+    product.stock, product.image_url, product.active, productId
   ).run()
 
-  if (result.success) {
+  if (result.meta.changes) {
     return c.json({ ok: true })
   }
   
-  throw new HttpError(500, 'Failed to update product')
+  throw new HttpError(404, 'Product not found.')
 })
+
+function cleanProduct(body: { name: string; description: string; category: string; price_cents: number; stock: number; image_url: string; active: number }) {
+  const product = {
+    name: safeText(body.name, 255),
+    description: safeText(body.description, 1000),
+    category: safeText(body.category, 40),
+    price_cents: Number(body.price_cents),
+    stock: Number(body.stock),
+    image_url: safeText(body.image_url, 1000),
+    active: Number(body.active)
+  }
+  if (!product.name || !product.description || !['Bags', 'Watches', 'Bangles', 'Necklaces'].includes(product.category) ||
+      !Number.isInteger(product.price_cents) || product.price_cents < 0 ||
+      !Number.isInteger(product.stock) || product.stock < 0 ||
+      !product.image_url.startsWith('/') || ![0, 1].includes(product.active)) {
+    throw new HttpError(400, 'Complete the product details with valid values.')
+  }
+  return product
+}

@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node scripts/start.mjs",
     "check": "node scripts/check.mjs",
+    "smoke": "node scripts/smoke.mjs",
     "check:stage1": "node scripts/check.mjs --stage 1",
     "check:stage2": "node scripts/check.mjs --stage 2",
     "check:stage3": "node scripts/check.mjs --stage 3",

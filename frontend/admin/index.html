@@ -58,6 +58,16 @@
           <label class="block text-[10px] uppercase tracking-widest text-slate-900 mb-2 font-bold">Item Name</label>
           <input type="text" id="modal-product-name" required class="w-full border-b border-slate-300 bg-transparent py-2 text-sm focus:outline-none focus:border-slate-900 font-serif">
         </div>
+        <div>
+          <label class="block text-[10px] uppercase tracking-widest text-slate-900 mb-2 font-bold">Description</label>
+          <textarea id="modal-product-description" required maxlength="1000" class="w-full border-b border-slate-300 bg-transparent py-2 text-sm focus:outline-none focus:border-slate-900 font-serif"></textarea>
+        </div>
+        <div>
+          <label class="block text-[10px] uppercase tracking-widest text-slate-900 mb-2 font-bold">Category</label>
+          <select id="modal-product-category" required class="w-full border-b border-slate-300 bg-transparent py-2 text-sm focus:outline-none focus:border-slate-900 font-serif">
+            <option value="Bags">Bags</option><option value="Watches">Watches</option><option value="Bangles">Bangles</option><option value="Necklaces">Necklaces</option>
+          </select>
+        </div>
         
         <div class="grid grid-cols-2 gap-4">
           <div>
@@ -72,7 +82,7 @@
 
         <div>
           <label class="block text-[10px] uppercase tracking-widest text-slate-900 mb-2 font-bold">Image URL</label>
-          <input type="text" id="modal-product-image" class="w-full border-b border-slate-300 bg-transparent py-2 text-sm focus:outline-none focus:border-slate-900 font-serif">
+          <input type="text" id="modal-product-image" required placeholder="/assets/images/products/item.png" class="w-full border-b border-slate-300 bg-transparent py-2 text-sm focus:outline-none focus:border-slate-900 font-serif">
         </div>
 
         <div>

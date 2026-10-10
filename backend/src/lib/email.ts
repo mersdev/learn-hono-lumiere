@@ -38,7 +38,7 @@ export function verificationEmail(name: string, url: string): Pick<EmailInput, '
   const safeUrl = escapeHtml(url)
   return {
     subject: 'Verify your LUMIÈRE email',
-    html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto"><h2>Verify your email</h2><p>Hi ${safeName},</p><p>Confirm your address to activate your LUMIÈRE account.</p><p><a href="${safeUrl}" style="display:inline-block;background:#111827;color:#fff;padding:12px 18px;border-radius:10px;text-decoration:none">Verify email</a></p><p>This link expires in 60 minutes.</p></div>`,
+    html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto"><h2>Verify your email</h2><p>Hi ${safeName},</p><p>Confirm the email address for your LUMIÈRE account.</p><p><a href="${safeUrl}" style="display:inline-block;background:#111827;color:#fff;padding:12px 18px;border-radius:10px;text-decoration:none">Verify email</a></p><p>This link expires in 60 minutes.</p></div>`,
     text: `Hi ${name}, verify your LUMIÈRE email: ${url}\nThis link expires in 60 minutes.`
   }
 }

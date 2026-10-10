@@ -11,11 +11,17 @@ export function createAuth(env: Bindings) {
     secret: env.BETTER_AUTH_SECRET,
     baseURL: env.BETTER_AUTH_URL,
     basePath: '/api/auth',
+    user: {
+      additionalFields: {
+        phone: { type: 'string', required: false, defaultValue: '' },
+        address: { type: 'string', required: false, defaultValue: '' }
+      }
+    },
     trustedOrigins: [env.APP_ORIGIN, 'http://localhost:8788', 'http://localhost:8787'],
     advanced: {
       useSecureCookies: isProd,
       defaultCookieAttributes: { 
-        sameSite: 'none',
+        sameSite: isProd ? 'none' : 'lax',
         secure: isProd 
       }
     },

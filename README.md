@@ -371,21 +371,32 @@ secrets after deployment.
 ```text
 GET    /health
 
-POST   /api/auth/register
-POST   /api/auth/resend-verification
-POST   /api/auth/verify-email
-POST   /api/auth/login
-GET    /api/auth/me
-POST   /api/auth/logout
-POST   /api/auth/forgot-password
+POST   /api/auth/sign-up/email
+POST   /api/auth/send-verification-email
+GET    /api/auth/verify-email
+POST   /api/auth/sign-in/email
+GET    /api/auth/get-session
+POST   /api/auth/sign-out
+POST   /api/auth/request-password-reset
 POST   /api/auth/reset-password
+POST   /api/auth/change-password
+POST   /api/auth/two-factor/{enable,send-otp,verify-otp,disable}
 
 GET    /api/products
 GET    /api/products/:id
+GET    /api/products/admin/all             (admin)
+POST   /api/products                       (admin)
+PATCH  /api/products/:id                   (admin)
+
+GET    /api/user/wishlist                  (signed in)
+POST   /api/user/wishlist/:id              (signed in)
+DELETE /api/user/wishlist/:id              (signed in)
 
 POST   /api/orders
 GET    /api/orders
 GET    /api/orders/:id
+GET    /api/orders/all                     (admin)
+PATCH  /api/orders/:id/shipping            (admin)
 ```
 
 # Project structure

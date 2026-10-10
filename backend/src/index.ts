@@ -5,6 +5,7 @@ import type { AppEnv } from './types'
 import { createAuth } from './lib/auth'
 import { productRoutes } from './routes/products'
 import { orderRoutes } from './routes/orders'
+import { wishlistRoutes } from './routes/wishlist'
 import { HttpError } from './lib/http'
 
 const app = new Hono<AppEnv>()
@@ -37,6 +38,7 @@ app.get('/reset-password/', (c) => c.redirect(new URL(`/reset-password/${new URL
 app.on(['GET', 'POST'], '/api/auth/*', (c) => createAuth(c.env).handler(c.req.raw))
 app.route('/api/products', productRoutes)
 app.route('/api/orders', orderRoutes)
+app.route('/api/user/wishlist', wishlistRoutes)
 
 app.notFound((c) => c.json({ error: 'Not found.' }, 404))
 

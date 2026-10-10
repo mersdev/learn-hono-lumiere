@@ -1,0 +1,8 @@
+ALTER TABLE "user" ADD COLUMN phone TEXT NOT NULL DEFAULT '';
+ALTER TABLE "user" ADD COLUMN address TEXT NOT NULL DEFAULT '';
+
+CREATE TABLE wishlist (
+  user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+  product_id TEXT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  PRIMARY KEY (user_id, product_id)
+);

@@ -1,8 +1,6 @@
 import { api, getCurrentUser } from './api.js';
 import { money, escapeHtml } from './ui.js';
 
-const API_URL = window.APP_CONFIG?.API_BASE || 'http://localhost:8787';
-
 async function init() {
   const header = document.getElementById('site-header');
   if (header) {
@@ -18,6 +16,10 @@ async function init() {
 
   const user = await getCurrentUser();
   if (!user) return window.location.replace('/login/?next=' + encodeURIComponent(location.pathname + location.search));
+  if (user.email !== 'lumiere.csproject@gmail.com') {
+    document.getElementById('order-root').innerHTML = '<p class="py-12 text-center text-slate-600">Admin access required.</p>';
+    return;
+  }
 
   const urlParams = new URLSearchParams(window.location.search);
   const orderId = urlParams.get('id');
@@ -29,38 +31,15 @@ async function init() {
   }
 
   try {
-    let order, items, allProducts = [];
-    
-    if (orderId === 'CABF4' || orderId.includes('6192EF55')) {
-        order = {
-          id: orderId,
-          created_at: Date.now() / 1000,
-          total_cents: 5500000,
-          status: 'confirmed',
-          fulfillment: 'Boutique Pick-up',
-          customer_name: 'Lennard',
-          address1: '6, Lorong Gemilang Indah 5, Taman Gemilang Indah',
-          verification_pin: '861358'
-        };
-        items = [{ name: 'Rolex Datejust 36', quantity: 1, price_cents: 5500000 }];
-    } else {
-        const [orderRes, productsRes] = await Promise.all([
-          api(`/api/admin/orders/${encodeURIComponent(orderId)}`).catch(() => api(`/api/orders/${encodeURIComponent(orderId)}`)),
-          api('/api/products').catch(() => ({ products: [] }))
-        ]);
-        order = orderRes.order || orderRes.data || orderRes;
-        items = orderRes.items || order.items || [];
-        allProducts = productsRes.products || [];
-    }
+    const [orderRes, productsRes] = await Promise.all([
+      api(`/api/orders/${encodeURIComponent(orderId)}`),
+      api('/api/products/admin/all').catch(() => ({ products: [] }))
+    ]);
+    const order = orderRes.order;
+    const items = orderRes.items || [];
+    const allProducts = productsRes.products || [];
 
     if (!order) throw new Error('Order not found.');
-    
-    // --- ADMIN STATE BRIDGE ---
-    const localUpdates = JSON.parse(localStorage.getItem('lumiere_admin_updates') || '{}');
-    if (localUpdates[order.id]) {
-        order.status = localUpdates[order.id].status || order.status;
-        order.tracking_number = localUpdates[order.id].tracking_number || order.tracking_number;
-    }
     
     renderOrderInterface(root, order, items, allProducts);
   } catch (error) {
@@ -112,13 +91,7 @@ function renderOrderInterface(root, order, items, allProducts) {
     }).join('');
   }
 
-  // --- BULLETPROOF DETECTION & OVERRIDE ---
-  const localPickupKey = `lumiere_pickup_${order.id}`;
-  const isPickupDefault = 
-    order.delivery_method === 'pickup' ||
-    localStorage.getItem(localPickupKey) === 'true' || 
-    ['preparing', 'ready', 'collected'].includes(currentStatus) ||
-    String(order.fulfillment).toLowerCase().includes('pick');
+  const isPickupDefault = order.delivery_method === 'pickup';
 
   root.innerHTML = `
     <div class="mb-12 flex justify-between items-end border-b border-slate-200 pb-6">
@@ -160,7 +133,7 @@ function renderOrderInterface(root, order, items, allProducts) {
             
             <label class="block text-[9px] uppercase tracking-[0.2em] text-slate-300 mb-3 font-bold">Fulfillment Mode</label>
             <div class="relative mb-6">
-              <select id="action-fulfillment" class="w-full border border-slate-600 bg-slate-800 p-3 text-sm focus:outline-none focus:border-white font-serif text-white appearance-none cursor-pointer">
+              <select id="action-fulfillment" disabled class="w-full border border-slate-600 bg-slate-800 p-3 text-sm font-serif text-white">
                 <option value="delivery" ${!isPickupDefault ? 'selected' : ''}>Home Delivery</option>
                 <option value="pickup" ${isPickupDefault ? 'selected' : ''}>In-Store Pick-up</option>
               </select>
@@ -189,9 +162,10 @@ function renderOrderInterface(root, order, items, allProducts) {
 
         <div class="border border-slate-200 p-8">
           <h2 class="text-[9px] font-bold tracking-[0.2em] text-slate-900 uppercase mb-6 border-b border-slate-200 pb-4">Financials</h2>
-          <div class="flex justify-between text-sm mb-3 text-slate-600 font-serif"><p>Subtotal</p><p>${money(order.total_cents)}</p></div>
-          <div class="flex justify-between text-sm mb-6 text-slate-600 font-serif"><p>Shipping</p><p>RM 0.00</p></div>
-          <div class="flex justify-between text-base font-medium text-slate-900 pt-4 border-t border-slate-200 font-serif"><p>Total Revenue</p><p>${money(order.total_cents)}</p></div>
+          <div class="flex justify-between text-sm mb-3 text-slate-600 font-serif"><p>Subtotal</p><p>${money(order.subtotal_cents)}</p></div>
+          <div class="flex justify-between text-sm mb-3 text-slate-600 font-serif"><p>Shipping</p><p>${money(order.shipping_cents)}</p></div>
+          <div class="flex justify-between text-sm mb-6 text-slate-600 font-serif"><p>Tax</p><p>${money(order.tax_cents)}</p></div>
+          <div class="flex justify-between text-base font-medium text-slate-900 pt-4 border-t border-slate-200 font-serif"><p>Order Total</p><p>${money(order.total_cents)}</p></div>
         </div>
       </div>
 
@@ -241,21 +215,12 @@ function renderOrderInterface(root, order, items, allProducts) {
         <div class="mt-6 pt-6 border-t border-slate-700">
           <div class="flex justify-between items-end mb-3">
             <label class="block text-[9px] uppercase tracking-widest text-slate-300 font-bold">Tracking / Waybill</label>
-            <button type="button" id="generate-tracking-btn" class="text-[9px] font-bold tracking-widest uppercase text-amber-500 hover:text-amber-400 transition-colors cursor-pointer">Generate</button>
           </div>
           <input type="text" id="action-tracking" placeholder="Enter tracking..." value="${escapeHtml(order.tracking_number || '')}" class="w-full border border-slate-600 bg-transparent p-3 text-sm focus:outline-none focus:border-white font-serif text-white placeholder-slate-500">
         </div>
       `;
-      if (displayAddress) displayAddress.textContent = escapeHtml(order.address1 || 'Standard Delivery');
+      if (displayAddress) displayAddress.textContent = order.address1 || 'Standard Delivery';
 
-      const generateBtn = document.getElementById('generate-tracking-btn');
-      if (generateBtn) {
-        generateBtn.addEventListener('click', () => {
-          const randomCode = Math.random().toString(36).substring(2, 10).toUpperCase();
-          document.getElementById('action-tracking').value = `LUM-${randomCode}`;
-          document.getElementById('action-status').value = 'shipped';
-        });
-      }
     }
 
     if (Array.from(statusSelect.options).some(opt => opt.value === currentStatus)) {
@@ -264,7 +229,6 @@ function renderOrderInterface(root, order, items, allProducts) {
   }
 
   updateFulfillmentUI();
-  document.getElementById('action-fulfillment').addEventListener('change', updateFulfillmentUI);
 
   const form = document.getElementById('order-action-form');
   form.addEventListener('submit', async (e) => {
@@ -277,32 +241,15 @@ function renderOrderInterface(root, order, items, allProducts) {
     const trackingInput = document.getElementById('action-tracking');
     const trackingValue = trackingInput ? trackingInput.value.trim() : null;
     const statusValue = document.getElementById('action-status').value;
-    const isPickupMode = document.getElementById('action-fulfillment').value === 'pickup';
 
     try {
-      const localUpdates = JSON.parse(localStorage.getItem('lumiere_admin_updates') || '{}');
-      localUpdates[order.id] = {
-          status: statusValue,
-          tracking_number: trackingValue
-      };
-      localStorage.setItem('lumiere_admin_updates', JSON.stringify(localUpdates));
-      
-      if (isPickupMode) {
-          localStorage.setItem(`lumiere_pickup_${order.id}`, 'true');
-      } else {
-          localStorage.removeItem(`lumiere_pickup_${order.id}`);
-      }
-
-      await fetch(`${API_URL}/api/orders/${order.id}/shipping`, {
+      await api(`/api/orders/${encodeURIComponent(order.id)}/shipping`, {
         method: 'PATCH',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           status: statusValue, 
-          tracking_number: trackingValue,
-          tracking: trackingValue
+          tracking_number: trackingValue
         })
-      }).catch(() => null); 
+      })
       
       window.location.reload();
     } catch (error) {

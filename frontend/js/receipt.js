@@ -108,7 +108,7 @@ async function init() {
             </p>
             
             <button class="border border-slate-900 text-slate-900 text-[10px] font-bold tracking-[0.2em] uppercase px-14 py-5 hover:bg-slate-900 hover:text-white transition-colors w-full max-w-sm mx-auto" onclick="window.print()">
-               Download Pass
+               Print Pass
             </button>
           </div>
         `;
@@ -145,16 +145,6 @@ async function init() {
          ${extraSection}
       </div>
     `;
-
-    // --- PRESENTATION BRIDGE: Save order to account history ---
-    try {
-       let history = JSON.parse(localStorage.getItem('lumiere_order_history') || '[]');
-       if (!history.some(o => (o.id || o.uuid) === (order.id || order.uuid))) {
-           history.unshift(order); 
-           localStorage.setItem('lumiere_order_history', JSON.stringify(history));
-       }
-    } catch (e) { console.error('History save failed', e); }
-    // ----------------------------------------------------------
 
   } catch (error) {
     root.innerHTML = `<div class="bg-white border border-red-200 p-6 text-red-500 max-w-md mx-auto text-center text-sm font-serif">${escapeHtml(error.message)}</div>`

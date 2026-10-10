@@ -62,7 +62,7 @@ export async function renderShell() {
           <a href="/" class="text-2xl font-serif font-bold tracking-[0.2em] text-slate-950 uppercase">LUMIÈRE</a>
           <nav class="hidden md:flex gap-8 items-center" aria-label="Main navigation">
             <a href="/products/" class="text-[10px] font-bold tracking-widest text-slate-900 uppercase hover:text-slate-500 transition-colors">The Collection</a>
-            <a href="/authenticate/" class="text-[10px] font-bold tracking-widest text-slate-900 uppercase hover:text-slate-500 transition-colors">Authenticate</a>
+            <a href="/authenticate/" class="text-[10px] font-bold tracking-widest text-slate-900 uppercase hover:text-slate-500 transition-colors">Catalog Lookup</a>
             <a href="/cart/" class="text-[10px] font-bold tracking-widest text-slate-900 uppercase hover:text-slate-500 transition-colors">Cart (<span data-cart-count>0</span>)</a>
             ${accountLinks}
           </nav>
@@ -70,7 +70,7 @@ export async function renderShell() {
             <summary class="lumiere-btn-outline list-none">Menu</summary>
             <nav class="absolute right-0 top-full mt-2 flex min-w-48 flex-col gap-5 border border-slate-200 bg-white p-5 shadow-sm" aria-label="Mobile navigation">
               <a href="/products/">The Collection</a>
-              <a href="/authenticate/">Authenticate</a>
+              <a href="/authenticate/">Catalog Lookup</a>
               <a href="/cart/">Cart (<span data-cart-count>0</span>)</a>
               ${accountLinks}
             </nav>
@@ -83,29 +83,12 @@ export async function renderShell() {
         logoutBtn.textContent = 'LOGGING OUT...';
         
         try {
-          // Force a native fetch with explicit headers and body to satisfy better-auth
-          const API_BASE = window.APP_CONFIG?.API_BASE || 'http://localhost:8787';
-          const res = await fetch(`${API_BASE}/api/auth/sign-out`, { 
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({}),
-            credentials: 'include' 
-          });
-
-          if (!res.ok) {
-            console.warn('Server refused logout:', res.status);
-          }
-        } catch (error) {
-          console.error('Network error during logout:', error);
-        } finally {
-          // Clear local storage arrays
-          localStorage.clear();
-          sessionStorage.clear();
-          
-          // Redirect back to home
+          await api('/api/auth/sign-out', { method: 'POST', body: '{}' });
+          sessionStorage.removeItem('lumiere_checkout');
           window.location.href = '/';
+        } catch (error) {
+          logoutBtn.textContent = 'Logout';
+          toast(error.message, 'error');
         }
       });
     })

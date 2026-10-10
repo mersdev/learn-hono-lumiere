@@ -20,7 +20,7 @@ try {
   await required('frontend/assets/images/lumiere-hero-bag.png', [])
   await required('frontend/js/ui.js', ['LUMIÈRE', 'Mobile navigation', 'data-cart-count'])
   await required('frontend/js/product-images.js', ['prod_lv_neverfull', 'prod_bvlgari_bzero1', '/assets/images/products/'])
-  await required('frontend/js/catalog-fallback.js', ['prod_lv_neverfull', 'prod_bvlgari_bzero1', 'fallbackProducts'])
+  await required('frontend/js/api.js', ['credentials: \'include\'', 'Request failed'])
   for (const image of ['lv-neverfull', 'dior-lady', 'chanel-flap', 'hermes-birkin', 'rolex-submariner', 'rolex-datejust', 'cartier-tank', 'apm-meteorites', 'cartier-love', 'vca-alhambra', 'tiffany-smile', 'bvlgari-bzero1']) await required(`frontend/assets/images/products/${image}.png`, [])
   for (const image of ['category-bag-cutout', 'category-watch-cutout', 'category-bangle-cutout', 'category-necklace-cutout']) await required(`frontend/assets/images/products/${image}.png`, [])
   await required('.env.example', ['BETTER_AUTH_SECRET', 'BREVO_API_KEY', 'CLOUDFLARE_API_TOKEN'])
@@ -34,7 +34,7 @@ try {
   }
   if (!stage || stage >= 3) {
     await required('backend/src/index.ts', ['/api/auth', '/api/products', '/api/orders'])
-    await required('backend/src/lib/auth.ts', ['betterAuth', 'BETTER_AUTH_SECRET', 'BETTER_AUTH_URL', "sameSite: 'none'", 'sendVerificationEmail', 'sendResetPassword'])
+    await required('backend/src/lib/auth.ts', ['betterAuth', 'BETTER_AUTH_SECRET', 'BETTER_AUTH_URL', "sameSite: isProd ? 'none' : 'lax'", 'sendVerificationEmail', 'sendResetPassword'])
     await required('backend/src/routes/orders.ts', ['price_cents', 'Idempotency-Key', 'requireUser', "Origin') !== c.env.CORS_ORIGIN"])
     await required('backend/migrations/0003_better_auth_cutover.sql', ['CREATE TABLE "user"', 'CREATE TABLE session', 'CREATE TABLE account', 'CREATE TABLE verification', 'REFERENCES "user"', 'legacy_users', 'legacy_orders'])
     await required('backend/migrations/0004_reset_catalog.sql', ['DROP TABLE IF EXISTS order_items', 'DROP TABLE IF EXISTS orders', 'CREATE TABLE "user"', 'DROP TABLE IF EXISTS legacy_users'])

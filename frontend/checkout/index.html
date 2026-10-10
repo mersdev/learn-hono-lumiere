@@ -98,12 +98,8 @@
                         </label>
                         <label class="sm:col-span-1">
                             <span class="text-sm font-medium">Country</span>
-                            <select name="country" required autocomplete="country-name" class="address-input mt-2 w-full rounded-none border border-slate-300 px-4 py-3 bg-white">
-                                <option value="Malaysia" selected>Malaysia</option>
-                                <option value="Singapore">Singapore</option>
-                                <option value="Brunei">Brunei</option>
-                                <option value="Indonesia">Indonesia</option>
-                            </select>
+                            <p class="mt-2 border-b border-slate-300 py-3 text-sm">Malaysia only</p>
+                            <input type="hidden" name="country" value="Malaysia" class="address-input">
                         </label>
                     </div>
                 </div>
@@ -152,12 +148,8 @@
                         </label>
                         <label class="sm:col-span-1">
                             <span class="text-sm font-medium">Country</span>
-                            <select name="country" disabled required autocomplete="billing country-name" class="billing-input mt-2 w-full rounded-none border border-slate-300 px-4 py-3 bg-white">
-                                <option value="Malaysia" selected>Malaysia</option>
-                                <option value="Singapore">Singapore</option>
-                                <option value="Brunei">Brunei</option>
-                                <option value="Indonesia">Indonesia</option>
-                            </select>
+                            <p class="mt-2 border-b border-slate-300 py-3 text-sm">Malaysia only</p>
+                            <input type="hidden" name="country" value="Malaysia" disabled class="billing-input">
                         </label>
                     </div>
                 </div>

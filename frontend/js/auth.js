@@ -34,9 +34,12 @@ const passwordInput = `
 await renderShell();
 
 if (state === 'verified') {
-  root.innerHTML = new URLSearchParams(location.search).has('error')
+  const params = new URLSearchParams(location.search);
+  root.innerHTML = params.has('error')
     ? formHeader('Verification failed', 'Expired link') + '<p class="mb-6 text-slate-500 text-center text-sm">This link is invalid or expired. Request a new verification email.</p><a class="block w-full lumiere-btn text-center" href="/resend-verification/">Resend verification</a>'
-    : formHeader('Email verified', 'Success') + '<p class="mb-6 text-slate-500 text-center text-sm">Your LUMIÈRE account is ready.</p><a class="block w-full lumiere-btn text-center" href="/login/">Log In</a>';
+    : params.get('confirmed') === '1'
+      ? formHeader('Email verified', 'Success') + '<p class="mb-6 text-slate-500 text-center text-sm">Your email address is confirmed.</p><a class="block w-full lumiere-btn text-center" href="/login/">Log In</a>'
+      : formHeader('Verify your email', 'Account') + '<p class="mb-6 text-slate-500 text-center text-sm">Open the verification link from your email to confirm your address.</p><a class="block w-full lumiere-btn text-center" href="/resend-verification/">Resend verification</a>';
 }
 else if (state === 'sent') {
   root.innerHTML = formHeader('Check your inbox', 'Verification') + '<p class="mb-6 text-slate-500 text-center text-sm">We sent a verification link. Once confirmed, return here.</p><a class="block w-full lumiere-btn text-center" href="/login/">Log In</a>';
@@ -110,11 +113,11 @@ if (formElement) {
         root.innerHTML = formHeader('Password updated', 'Success') + '<a class="block w-full lumiere-btn text-center" href="/login/">Log In</a>';
       }
       else if (state === 'resend') {
-        await api('/api/auth/send-verification-email', { method: 'POST', body: JSON.stringify({ email: data.email, callbackURL: new URL('/verify/', location.origin).href }) });
+        await api('/api/auth/send-verification-email', { method: 'POST', body: JSON.stringify({ email: data.email, callbackURL: new URL('/verify/?confirmed=1', location.origin).href }) });
         root.innerHTML = formHeader('Check your inbox', 'Verification') + '<p class="text-slate-500 text-center text-sm">If that address has an account, a verification link is on its way.</p>';
       }
       else if (state === 'signup') {
-        await api('/api/auth/sign-up/email', { method: 'POST', body: JSON.stringify({ ...data, callbackURL: new URL('/verify/', location.origin).href }) });
+        await api('/api/auth/sign-up/email', { method: 'POST', body: JSON.stringify({ ...data, callbackURL: new URL('/verify/?confirmed=1', location.origin).href }) });
         window.location.href = '/verification/';
       }
       else if (state === 'forgot') {
@@ -208,68 +211,8 @@ if (formElement) {
             }
           });
         }
-        // 6. First-Time Login: Force Setup Screen
-        else if (response && response.user) {
-
-          // Skip 2FA setup entirely if it is the admin account
-          if (userEmail === 'lumiere.csproject@gmail.com') {
-            window.location.replace('/admin/');
-            return;
-          }
-
-          // Force setup for all other users
-          try {
-            await api('/api/auth/two-factor/enable', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                password: data.password,
-                method: 'otp'
-              })
-            });
-
-            await api('/api/auth/two-factor/send-otp', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({})
-            });
-
-            root.innerHTML = formHeader('Complete 2FA Setup', 'Security Check') + `
-              <form id="setup-otp-form" class="text-left">
-                <div class="mb-6">
-                  <label class="block text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase mb-2">6-Digit Code</label>
-                  <input name="otp" type="text" required pattern="[a-zA-Z0-9]{6}" placeholder="Enter the code sent to your email" class="w-full border border-slate-200 p-3 text-sm focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900 rounded-none bg-white">
-                </div>
-                <button type="submit" class="w-full lumiere-btn">Verify & Secure Account</button>
-              </form>
-            `;
-
-            document.getElementById('setup-otp-form').addEventListener('submit', async (otpEvent) => {
-              otpEvent.preventDefault();
-              const otpButton = otpEvent.currentTarget.querySelector('button');
-              setBusy(otpButton, true);
-              const otpData = Object.fromEntries(new FormData(otpEvent.currentTarget));
-
-              try {
-                await api('/api/auth/two-factor/verify-otp', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    code: otpData.otp,
-                    method: 'otp'
-                  })
-                });
-
-                window.location.replace(afterLogin);
-              } catch (error) {
-                toast('Invalid setup code: ' + error.message, 'error');
-                setBusy(otpButton, false);
-              }
-            });
-          } catch (e) {
-            toast('2FA Setup Error: ' + (e.message || 'Unknown API Error'), 'error');
-            setBusy(button, false);
-          }
+        else if (response?.user) {
+          window.location.replace(userEmail === 'lumiere.csproject@gmail.com' ? '/admin/' : afterLogin);
         }
       }
     } catch (error) {
