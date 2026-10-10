@@ -1,6 +1,14 @@
 import { cartCount } from './cart-store.js'
 import { getCurrentUser, api } from './api.js'
 
+document.addEventListener('error', (event) => {
+  const image = event.target
+  if (!image.matches?.('img[data-image-fallback]')) return
+  image.hidden = true
+  image.nextElementSibling?.classList.remove('hidden')
+  image.nextElementSibling?.classList.add('flex')
+}, true)
+
 export function money(cents) {
   return new Intl.NumberFormat('en-MY', { style: 'currency', currency: 'MYR' }).format(cents / 100)
 }

@@ -13,17 +13,10 @@ function render() {
 
   const subtotal = cartSubtotal()
   
-  // Security Notice triggered if cart exceeds RM 5000 (500000 cents)
-  const securityNotice = subtotal > 500000 ? `
-    <div class="border border-red-200 bg-red-50 p-4 mb-8 text-sm text-red-800">
-      <strong class="font-bold">Security Notice:</strong> Your cart total exceeds RM 5,000. In accordance with our security protocols, Touch 'n Go e-wallet payment is disabled. Please proceed with a Credit or Debit Card.
-    </div>
-  ` : '';
-
   const itemsHtml = items.map((item) => `
     <div class="flex gap-6 pb-6 mb-6 border-b border-slate-100">
       <div class="h-24 w-24 bg-slate-100 flex items-center justify-center shrink-0">
-         <img src="${escapeHtml(imageForCartItem(item))}" alt="${escapeHtml(item.name)}" class="h-full w-full object-contain mix-blend-multiply" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+         <img src="${escapeHtml(imageForCartItem(item))}" alt="${escapeHtml(item.name)}" data-image-fallback class="h-full w-full object-contain mix-blend-multiply">
          <span class="hidden text-slate-300 text-[9px] font-bold tracking-widest">IMG</span>
       </div>
       <div class="flex-1 flex flex-col justify-center">
@@ -43,7 +36,6 @@ function render() {
     </div>
     
     <div class="bg-white border border-slate-200 p-8 sm:p-12 max-w-4xl mx-auto shadow-sm">
-      ${securityNotice}
       ${itemsHtml}
       
       <div class="text-right mt-8 text-sm text-slate-500 mb-4">
@@ -55,7 +47,7 @@ function render() {
       </div>
       
       <div class="flex justify-end">
-         <a href="/checkout/" class="lumiere-btn block w-full sm:w-auto text-center">Proceed to Card Payment</a>
+         <a href="/checkout/" class="lumiere-btn block w-full sm:w-auto text-center">Proceed to Demo Checkout</a>
       </div>
     </div>`
 

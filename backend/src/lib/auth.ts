@@ -3,7 +3,7 @@ import { twoFactor } from 'better-auth/plugins'
 import type { Bindings } from '../types'
 import { sendTransactionalEmail, resetPasswordEmail, verificationEmail, otpEmail } from './email'
 
-export function createAuth(env: Bindings) {
+export function createAuth(env: Bindings, onOtpDeliveryError?: () => void) {
   const isProd = env.BETTER_AUTH_URL?.startsWith('https://');
 
   return betterAuth({
@@ -27,7 +27,7 @@ export function createAuth(env: Bindings) {
     },
     emailAndPassword: {
       enabled: true,
-      requireEmailVerification: false, 
+      requireEmailVerification: true,
       minPasswordLength: 8,            
       maxPasswordLength: 128,
       revokeSessionsOnPasswordReset: true,
@@ -42,14 +42,29 @@ export function createAuth(env: Bindings) {
         await sendTransactionalEmail(env, { to: user.email, ...verificationEmail(user.name, url) })
       }
     },
+    databaseHooks: {
+      user: {
+        create: {
+          before: async (user) => ({ data: { ...user, twoFactorEnabled: true } })
+        }
+      }
+    },
     plugins: [
       twoFactor({
+        totpOptions: { disable: true },
         otpOptions: {
+          digits: 6,
+          period: 5,
           async sendOTP({ user, otp }) {
-            await sendTransactionalEmail(env, { 
-              to: user.email, 
-              ...otpEmail(otp) 
-            });
+            try {
+              await sendTransactionalEmail(env, {
+                to: user.email,
+                ...otpEmail(otp)
+              });
+            } catch (error) {
+              onOtpDeliveryError?.()
+              throw error
+            }
           }
         }
       })

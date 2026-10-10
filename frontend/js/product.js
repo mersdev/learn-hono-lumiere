@@ -31,7 +31,7 @@ async function init() {
     
     <!-- Large Image Left -->
     <div class="bg-slate-100 aspect-[4/5] flex items-center justify-center p-10 relative overflow-hidden">
-      <img src="${escapeHtml(imageForProduct(product))}" alt="${escapeHtml(product.name)}" class="w-full h-full object-contain mix-blend-multiply" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+      <img src="${escapeHtml(imageForProduct(product))}" alt="${escapeHtml(product.name)}" data-image-fallback class="w-full h-full object-contain mix-blend-multiply">
       <span class="hidden text-slate-300 text-xs font-bold tracking-widest uppercase">Main Product Image</span>
     </div>
     

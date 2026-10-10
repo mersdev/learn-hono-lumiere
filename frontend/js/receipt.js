@@ -47,16 +47,7 @@ async function init() {
     const itemsList = items.length ? items.map(item => {
        const name = item.name || item.productName || item.product_name || (item.product && item.product.name) || 'Luxury Piece';
        
-       let itemPrice = parseInt(
-           item.price_cents !== undefined ? item.price_cents : 
-           (item.priceCents !== undefined ? item.priceCents : 
-           (item.price !== undefined ? item.price : 
-           (item.product && item.product.price_cents !== undefined ? item.product.price_cents : 0)))
-       );
-
-       if (itemPrice === 0 && amount > 0 && items.length > 0) {
-           itemPrice = Math.round(amount / items.reduce((acc, i) => acc + parseInt(i.quantity || i.qty || 1), 0));
-       }
+       const itemPrice = Number(item.unit_price_cents ?? item.price_cents ?? 0);
        const qty = parseInt(item.quantity || item.qty || 1);
        const pId = item.productId || item.product_id || (item.product && item.product.id) || '';
        
@@ -73,7 +64,7 @@ async function init() {
          <div class="flex items-center justify-between py-8">
            <div class="flex items-center gap-8">
              <div class="w-20 h-20 bg-slate-50 border border-slate-200 p-2 shrink-0 flex items-center justify-center relative">
-                <img src="${escapeHtml(imgUrl)}" alt="${escapeHtml(name)}" class="w-full h-full object-contain mix-blend-multiply z-10 relative" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <img src="${escapeHtml(imgUrl)}" alt="${escapeHtml(name)}" data-image-fallback class="w-full h-full object-contain mix-blend-multiply z-10 relative">
                 <span class="absolute inset-0 hidden items-center justify-center text-slate-400 text-[9px] font-bold uppercase tracking-widest text-center leading-tight">NO<br>IMG</span>
              </div>
              <div>
@@ -107,7 +98,7 @@ async function init() {
                Present your order number and PIN to boutique staff once your order is ready.
             </p>
             
-            <button class="border border-slate-900 text-slate-900 text-[10px] font-bold tracking-[0.2em] uppercase px-14 py-5 hover:bg-slate-900 hover:text-white transition-colors w-full max-w-sm mx-auto" onclick="window.print()">
+            <button id="print-pass" class="border border-slate-900 text-slate-900 text-[10px] font-bold tracking-[0.2em] uppercase px-14 py-5 hover:bg-slate-900 hover:text-white transition-colors w-full max-w-sm mx-auto">
                Print Pass
             </button>
           </div>
@@ -134,6 +125,11 @@ async function init() {
          </div>
 
          <!-- Total -->
+         <div class="space-y-2 border-b border-slate-200 pb-6 mb-6 text-sm text-slate-600">
+           <div class="flex justify-between"><span>Subtotal</span><span>${money(order.subtotal_cents)}</span></div>
+           <div class="flex justify-between"><span>Shipping</span><span>${money(order.shipping_cents)}</span></div>
+           <div class="flex justify-between"><span>Tax</span><span>${money(order.tax_cents)}</span></div>
+         </div>
          <div class="flex justify-between items-center border-b border-slate-200 pb-10">
             <h2 class="text-3xl font-serif text-slate-900">Total</h2>
             <div class="text-right">
@@ -145,6 +141,7 @@ async function init() {
          ${extraSection}
       </div>
     `;
+    root.querySelector('#print-pass')?.addEventListener('click', () => window.print());
 
   } catch (error) {
     root.innerHTML = `<div class="bg-white border border-red-200 p-6 text-red-500 max-w-md mx-auto text-center text-sm font-serif">${escapeHtml(error.message)}</div>`

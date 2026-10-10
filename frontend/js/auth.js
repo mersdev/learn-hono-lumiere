@@ -133,10 +133,10 @@ if (formElement) {
           body: JSON.stringify({ email: userEmail, password: data.password })
         });
 
-      // 5. Returning User: 2FA is officially enabled and working
-        if (response && response.twoFactorRedirect) {
+        if (response?.twoFactorRedirect) {
           
-          // Explicitly trigger OTP email dispatch on load for returning users
+          // Send a fresh PIN for every password sign-in.
+          let sendError;
           try {
             await api('/api/auth/two-factor/send-otp', {
               method: 'POST',
@@ -144,19 +144,20 @@ if (formElement) {
               body: JSON.stringify({})
             });
           } catch (e) {
-            console.warn('Initial OTP dispatch notice:', e);
+            sendError = e;
           }
           
           root.innerHTML = formHeader('Two-Factor Authentication', 'Security Check') + `
             <form id="otp-form" class="text-left">
               <div class="mb-6">
                 <label class="block text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase mb-2">6-Digit Code</label>
-                <input name="otp" type="text" required pattern="[a-zA-Z0-9]{6}" placeholder="Enter the code sent to your email" class="w-full border border-slate-200 p-3 text-sm focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900 rounded-none bg-white">
+                <input name="otp" type="text" required inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="Enter the code sent to your email" class="w-full border border-slate-200 p-3 text-sm focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900 rounded-none bg-white">
               </div>
               <button type="submit" class="w-full lumiere-btn mb-4">Verify & Log In</button>
               <button type="button" id="resend-otp-btn" class="w-full text-[10px] font-bold tracking-[0.2em] text-slate-400 hover:text-slate-900 uppercase transition-colors py-2 text-center block">Resend Code</button>
             </form>
           `;
+          if (sendError) toast('Could not send the PIN. Please resend it.', 'error');
 
           // Handle the Resend Button
           document.getElementById('resend-otp-btn').addEventListener('click', async (resendEvent) => {
@@ -194,13 +195,11 @@ if (formElement) {
             const otpData = Object.fromEntries(new FormData(otpEvent.currentTarget));
 
             try {
-              // Include method: 'otp' to prevent the 500 internal server error
               await api('/api/auth/two-factor/verify-otp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                  code: otpData.otp,
-                  method: 'otp'
+                  code: otpData.otp
                 })
               });
               
@@ -211,11 +210,13 @@ if (formElement) {
             }
           });
         }
-        else if (response?.user) {
-          window.location.replace(userEmail === 'lumiere.csproject@gmail.com' ? '/admin/' : afterLogin);
-        }
+        else throw new Error('Login could not start email PIN verification. Please try again.');
       }
     } catch (error) {
+      if (error.code === 'EMAIL_NOT_VERIFIED' || /email is not verified/i.test(error.message)) {
+        const form = document.getElementById('auth-form');
+        if (form && !document.getElementById('verify-email-link')) form.insertAdjacentHTML('afterend', '<a id="verify-email-link" class="block mt-4 text-center text-sm underline" href="/resend-verification/">Resend verification email</a>');
+      }
       toast(error.message, 'error');
       setBusy(button, false);
     }

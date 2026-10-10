@@ -10,7 +10,7 @@ function card(product) {
   return `
   <div class="bg-white border border-slate-200 p-6 text-center group flex flex-col h-full hover:shadow-sm transition-shadow">
     <a href="/product/?id=${encodeURIComponent(product.id)}" class="block bg-slate-50 aspect-square mb-6 overflow-hidden relative flex items-center justify-center">
-      <img src="${escapeHtml(imageForProduct(product))}" class="w-3/4 h-3/4 object-contain group-hover:scale-105 transition-transform duration-500 mix-blend-multiply" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+      <img src="${escapeHtml(imageForProduct(product))}" data-image-fallback class="w-3/4 h-3/4 object-contain group-hover:scale-105 transition-transform duration-500 mix-blend-multiply" loading="lazy">
       <span class="hidden text-slate-300 text-[10px] font-bold tracking-widest uppercase">IMG</span>
     </a>
     <h3 class="font-serif text-[17px] text-slate-900 mb-2 flex-grow"><a href="/product/?id=${encodeURIComponent(product.id)}">${escapeHtml(product.name)}</a></h3>

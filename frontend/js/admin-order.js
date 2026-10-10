@@ -72,7 +72,7 @@ function renderOrderInterface(root, order, items, allProducts) {
       const img = matchingProduct?.image_url || matchingProduct?.img || item.imageUrl || '';
       const name = item.product_name || item.name || 'Luxury Item';
       const qty = item.quantity || item.qty || 1;
-      const price = item.unit_price_cents || item.price_cents || order.total_cents;
+      const price = item.unit_price_cents ?? item.price_cents ?? 0;
 
       return `
         <div class="flex justify-between items-center py-4 border-b border-slate-200 last:border-0">
