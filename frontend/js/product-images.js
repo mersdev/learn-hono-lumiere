@@ -103,9 +103,9 @@ const PRODUCT_IMAGES = {
 };
 
 export function imageForProduct(product) {
-  return PRODUCT_IMAGES[product.id] || product.image_url
+  return product.image_url || PRODUCT_IMAGES[product.id]
 }
 
 export function imageForCartItem(item) {
-  return PRODUCT_IMAGES[item.productId] || item.imageUrl
+  return item.imageUrl || PRODUCT_IMAGES[item.productId]
 }

@@ -21,6 +21,7 @@ Use this guide for every storefront, account, checkout, payment, support, and ad
 ## Reusable patterns
 
 - Use the shared navigation and footer from `frontend/js/ui.js` on storefront routes; admin routes use a compact branded header in the same palette and type. Page headings use a short kicker, a Playfair title, and optional muted supporting copy.
+- Keep catalog review inside the admin shell. Show published and hidden listings separately, with the product image, price, stock, visibility, and a direct edit action so admins can see the result of a catalog change.
 - Use `.lumiere-panel` for bordered white sections and `.lumiere-btn` or `.lumiere-btn-outline` for primary and secondary actions. Keep text fields and selects square, white, and bordered. Keep button labels and disabled states clear.
 - Use `--color-gold` sparingly; success, warning, and error messages may use semantic colors. Do not change the canvas or card palette for those states.
 - Keep keyboard focus visible, labels associated with fields, useful alt text on content images, and sufficient contrast. Respect reduced-motion settings.

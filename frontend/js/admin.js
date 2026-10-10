@@ -1,5 +1,6 @@
 import { api, getCurrentUser } from './api.js'
 import { money, renderShell, escapeHtml } from './ui.js'
+import { imageForProduct } from './product-images.js'
 
 const API_URL = window.APP_CONFIG?.API_BASE || 'http://localhost:8787';
 
@@ -19,7 +20,7 @@ async function init() {
           <span class="text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase border-l border-slate-300 pl-4 mt-1">Command Center</span>
         </div>
         <nav class="flex flex-wrap gap-5 sm:gap-8 text-[10px] font-bold tracking-[0.2em] text-slate-900 uppercase items-center" aria-label="Admin navigation">
-          <a href="/" class="hover:text-slate-500 transition-colors">View Storefront</a>
+          <a href="/admin/?view=preview" class="hover:text-slate-500 transition-colors">Preview Catalog</a>
           <button id="admin-logout" class="hover:text-slate-500 transition-colors uppercase tracking-[0.2em] font-bold cursor-pointer">Logout</button>
         </nav>
       </div>
@@ -63,41 +64,75 @@ async function init() {
 
   const catalogRoot = document.getElementById('catalog-root');
   catalogRoot.innerHTML = '<p class="text-slate-500 font-serif text-center py-12">Loading inventory...</p>';
+  document.getElementById('preview-root').innerHTML = '<p class="text-slate-500 font-serif text-center py-12">Loading catalog preview...</p>';
   try {
     const { products } = await api('/api/products/admin/all');
     catalogData = products;
     renderCatalogTable(catalogRoot);
+    renderCatalogPreview();
   } catch (error) {
     catalogRoot.innerHTML = `<div class="border border-red-200 bg-red-50 p-6 text-red-600">Failed to load catalog.</div>`;
+    document.getElementById('preview-root').innerHTML = `<div class="border border-red-200 bg-red-50 p-6 text-red-600">${escapeHtml(error.message)}</div>`;
   }
 }
 
 function setupTabs() {
-  const tabLogistics = document.getElementById('tab-logistics');
-  const tabCatalog = document.getElementById('tab-catalog');
-  const viewLogistics = document.getElementById('view-logistics');
-  const viewCatalog = document.getElementById('view-catalog');
+  const views = ['logistics', 'catalog', 'preview'];
+  const show = (selected) => {
+    for (const view of views) {
+      const active = view === selected;
+      document.getElementById(`view-${view}`).classList.toggle('hidden', !active);
+      const tab = document.getElementById(`tab-${view}`);
+      tab.classList.toggle('border-slate-900', active);
+      tab.classList.toggle('text-slate-900', active);
+      tab.classList.toggle('border-transparent', !active);
+      tab.classList.toggle('text-slate-500', !active);
+      tab.classList.toggle('hover:border-slate-300', !active);
+      tab.classList.toggle('hover:text-slate-700', !active);
+      tab.setAttribute('aria-pressed', String(active));
+    }
+    history.replaceState(null, '', selected === 'logistics' ? '/admin/' : `/admin/?view=${selected}`);
+  };
+  for (const view of views) document.getElementById(`tab-${view}`).addEventListener('click', () => show(view));
+  const initial = new URLSearchParams(location.search).get('view');
+  show(views.includes(initial) ? initial : 'logistics');
+  document.getElementById('preview-search').addEventListener('input', renderCatalogPreview);
+}
 
-  const activeTabClasses = ['border-slate-900', 'text-slate-900'];
-  const inactiveTabClasses = ['border-transparent', 'text-slate-500', 'hover:border-slate-300', 'hover:text-slate-700'];
-
-  tabLogistics.addEventListener('click', () => {
-    viewLogistics.classList.remove('hidden');
-    viewCatalog.classList.add('hidden');
-    tabLogistics.classList.add(...activeTabClasses);
-    tabLogistics.classList.remove(...inactiveTabClasses);
-    tabCatalog.classList.remove(...activeTabClasses);
-    tabCatalog.classList.add(...inactiveTabClasses);
-  });
-
-  tabCatalog.addEventListener('click', () => {
-    viewCatalog.classList.remove('hidden');
-    viewLogistics.classList.add('hidden');
-    tabCatalog.classList.add(...activeTabClasses);
-    tabCatalog.classList.remove(...inactiveTabClasses);
-    tabLogistics.classList.remove(...activeTabClasses);
-    tabLogistics.classList.add(...inactiveTabClasses);
-  });
+function renderCatalogPreview() {
+  const root = document.getElementById('preview-root');
+  const query = document.getElementById('preview-search').value.trim().toLowerCase();
+  const matches = catalogData.filter(product =>
+    `${product.name} ${product.category} ${product.id}`.toLowerCase().includes(query)
+  ).sort((a, b) => a.name.localeCompare(b.name));
+  const card = (product) => `
+    <article class="flex h-full flex-col border border-slate-200 bg-white p-5">
+      <div class="relative mb-5 flex aspect-square items-center justify-center overflow-hidden bg-slate-50">
+        <img src="${escapeHtml(imageForProduct(product))}" alt="${escapeHtml(product.name)}" class="h-3/4 w-3/4 object-contain mix-blend-multiply" loading="lazy">
+        <span class="absolute left-3 top-3 bg-white px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-slate-700">${product.active ? 'Published' : 'Hidden'}</span>
+      </div>
+      <p class="mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-500">${escapeHtml(product.category)}</p>
+      <h4 class="mb-2 font-serif text-lg text-slate-900">${escapeHtml(product.name)}</h4>
+      <p class="mb-4 text-sm font-bold lumiere-gold">${money(product.price_cents)}</p>
+      <p class="mb-5 text-xs text-slate-500">${product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}</p>
+      <button type="button" data-preview-edit="${escapeHtml(product.id)}" class="lumiere-btn-outline mt-auto w-full">Edit listing</button>
+    </article>`;
+  const section = (products, heading, note) => `
+    <section class="mb-12">
+      <div class="mb-5 border-b border-slate-200 pb-4">
+        <h3 class="font-serif text-xl text-slate-900">${heading} <span class="text-sm text-slate-500">(${products.length})</span></h3>
+        <p class="mt-1 text-sm text-slate-500">${note}</p>
+      </div>
+      ${products.length
+        ? `<div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">${products.map(card).join('')}</div>`
+        : '<p class="border border-slate-200 bg-white p-8 text-sm text-slate-500">No matching listings.</p>'}
+    </section>`;
+  root.innerHTML = section(matches.filter(product => product.active), 'Published catalog', 'These listings appear in the customer catalog.') +
+    section(matches.filter(product => !product.active), 'Hidden listings', 'These listings remain available to admins only.');
+  root.querySelectorAll('[data-preview-edit]').forEach(button => button.addEventListener('click', () => {
+    const product = catalogData.find(item => item.id === button.dataset.previewEdit);
+    if (product) window.openProductModal(product);
+  }));
 }
 
 function renderCatalogTable(root) {
@@ -350,6 +385,10 @@ productForm?.addEventListener('submit', async (e) => {
     const { products } = await api('/api/products/admin/all');
     catalogData = products;
     renderCatalogTable(catalogRoot);
+    document.getElementById('preview-search').value = document.getElementById('modal-product-name').value.trim();
+    renderCatalogPreview();
+    document.getElementById('tab-preview').click();
+    document.getElementById('view-preview').scrollIntoView({ block: 'start' });
     
     submitBtn.textContent = 'SAVE PRODUCT';
     submitBtn.disabled = false;
