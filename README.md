@@ -1,4 +1,4 @@
-# Lumière — Cloudflare Pages + Hono Workers
+# Lumière — Cloudflare Pages + Cloudflare Workers
 
 Lumière is a storefront built with Cloudflare Pages, Hono Workers, D1, and Better Auth.
 
